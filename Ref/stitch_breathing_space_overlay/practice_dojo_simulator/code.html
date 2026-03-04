@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Practice Dojo Simulator - Pebble</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#7e8da0",
+                        "background-light": "#f7f7f7",
+                        "background-dark": "#17191b",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/20 px-10 py-3 bg-background-light dark:bg-background-dark sticky top-0 z-10">
+<div class="flex items-center gap-4 text-slate-900 dark:text-slate-100">
+<div class="size-6 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl">eco</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Pebble</h2>
+</div>
+<nav class="flex flex-1 justify-end gap-8">
+<div class="flex items-center gap-9">
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Dashboard</a>
+<a class="text-primary text-sm font-bold leading-normal border-b-2 border-primary pb-1" href="#">Practice Dojo</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">History</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Settings</a>
+</div>
+<div aria-label="User Profile" class="bg-primary/20 aspect-square bg-cover rounded-full size-10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">person</span>
+</div>
+</nav>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex justify-center py-8 px-4 md:px-10 relative">
+<!-- Zen Garden Background Effect (Subtle) -->
+<div class="absolute inset-0 pointer-events-none opacity-5 dark:opacity-10" style="background-image: repeating-linear-gradient(0deg, transparent, transparent 19px, var(--tw-colors-primary) 20px);"></div>
+<div class="max-w-[1200px] w-full flex flex-col lg:flex-row gap-8 relative z-10">
+<!-- Chat Simulator Area -->
+<section class="flex-1 max-w-[800px] flex flex-col bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-primary/10 overflow-hidden">
+<!-- Chat Header -->
+<div class="p-6 border-b border-primary/10">
+<h1 class="text-2xl md:text-[32px] font-bold leading-tight mb-2">Practice Dojo Simulator</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal">Master Gray Rocking techniques with a virtual antagonist.</p>
+</div>
+<!-- Chat Messages -->
+<div class="flex-1 overflow-y-auto p-6 space-y-8 flex flex-col">
+<!-- Antagonist Message -->
+<div class="flex gap-4">
+<div aria-label="Antagonist Avatar" class="w-10 h-10 flex-shrink-0 bg-slate-200 dark:bg-slate-700 rounded-md transform rotate-3 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-500">warning</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3">
+<span class="text-base font-bold">Antagonist</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs">10:02 AM</span>
+</div>
+<p class="text-base leading-relaxed">Why are you always ignoring me? You never care about what I have to say.</p>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex gap-4 flex-row-reverse">
+<div aria-label="User Avatar" class="w-10 h-10 flex-shrink-0 bg-primary/20 rounded-full flex items-center justify-center border-2 border-primary/30">
+<span class="material-symbols-outlined text-primary">spa</span>
+</div>
+<div class="flex flex-col gap-1 items-end">
+<div class="flex items-center gap-3 flex-row-reverse">
+<span class="text-base font-bold text-primary">You</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs">10:05 AM</span>
+</div>
+<p class="text-base leading-relaxed text-right">I am listening.</p>
+</div>
+</div>
+<!-- Antagonist Message -->
+<div class="flex gap-4">
+<div aria-label="Antagonist Avatar" class="w-10 h-10 flex-shrink-0 bg-slate-200 dark:bg-slate-700 rounded-md transform -rotate-2 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-500">warning</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3">
+<span class="text-base font-bold">Antagonist</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs">10:06 AM</span>
+</div>
+<p class="text-base leading-relaxed">No you're not! You always do this. You're so selfish, it's always about you and never about how I feel.</p>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<div class="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-primary/10">
+<div class="relative flex items-center">
+<input class="w-full bg-white dark:bg-slate-700 border border-primary/20 rounded-full py-4 pl-6 pr-14 focus:outline-none focus:ring-2 focus:ring-primary/50 text-base shadow-sm placeholder:text-slate-400" placeholder="Type your neutral response..." type="text"/>
+<button class="absolute right-2 top-1/2 -translate-y-1/2 bg-primary hover:bg-primary/90 text-white rounded-full w-10 h-10 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+<p class="text-xs text-slate-500 mt-3 text-center">Remember: Keep it brief, non-committal, and devoid of emotion.</p>
+</div>
+</section>
+<!-- Coach Panel (Sidebar) -->
+<aside class="w-full lg:w-80 flex-shrink-0 flex flex-col gap-6">
+<!-- Neutrality Score Card -->
+<div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-primary/10 flex flex-col items-center justify-center text-center">
+<div class="w-24 h-24 rounded-full border-4 border-primary/20 flex items-center justify-center mb-4 relative">
+<!-- Simulated progress circle -->
+<svg class="absolute inset-0 w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle class="text-primary/10" cx="50" cy="50" fill="transparent" r="46" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary" cx="50" cy="50" fill="transparent" r="46" stroke="currentColor" stroke-dasharray="289" stroke-dashoffset="43" stroke-width="8"></circle>
+</svg>
+<span class="text-3xl font-bold text-primary">85</span>
+</div>
+<h2 class="text-lg font-bold mb-1">Neutrality Score</h2>
+<p class="text-sm text-slate-500 dark:text-slate-400">Excellent composure.</p>
+</div>
+<!-- Feedback Checklist -->
+<div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-primary/10 flex flex-col">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary">psychology</span>
+<h3 class="text-lg font-bold">Coach Feedback</h3>
+</div>
+<div class="space-y-4">
+<label class="flex items-start gap-3 cursor-pointer group">
+<div class="mt-0.5 w-5 h-5 rounded border-2 border-primary bg-primary text-white flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<span class="text-sm leading-snug group-hover:text-primary transition-colors">Avoiding JADE (Justify, Argue, Defend, Explain)</span>
+</label>
+<label class="flex items-start gap-3 cursor-pointer group">
+<div class="mt-0.5 w-5 h-5 rounded border-2 border-primary bg-primary text-white flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<span class="text-sm leading-snug group-hover:text-primary transition-colors">Maintaining emotional distance</span>
+</label>
+<label class="flex items-start gap-3 cursor-pointer group">
+<div class="mt-0.5 w-5 h-5 rounded border-2 border-slate-300 dark:border-slate-600 bg-transparent flex items-center justify-center flex-shrink-0">
+</div>
+<span class="text-sm leading-snug text-slate-500 dark:text-slate-400 group-hover:text-primary transition-colors">Keeping responses short and neutral</span>
+</label>
+</div>
+</div>
+<!-- Tips / Guidance -->
+<div class="bg-primary/5 rounded-xl p-6 border border-primary/10">
+<h4 class="text-sm font-bold text-primary mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-base">lightbulb</span>
+                        Pro Tip
+                     </h4>
+<p class="text-sm text-slate-600 dark:text-slate-300">When they accuse you, don't try to correct their perception. A simple "Mhm" or "I hear you" is often enough.</p>
+</div>
+</aside>
+</div>
+</main>
+</body></html>

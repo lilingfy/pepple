@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Breathing Space Overlay</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#7e8da0",
+                        "background-light": "#f7f7f7",
+                        "background-dark": "#17191b",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex items-center justify-center m-0 p-0 overflow-hidden">
+<div class="relative flex h-full min-h-screen w-full flex-col group/design-root overflow-x-hidden bg-slate-200 dark:bg-slate-900 justify-center items-center p-8">
+<div class="layout-container flex h-full grow flex-col justify-center items-center w-full max-w-[960px]">
+<div class="text-center mb-16">
+<h1 class="text-primary tracking-light text-4xl font-bold leading-tight px-4 pb-3 transition-opacity duration-1000">Inhale...</h1>
+</div>
+<div class="flex flex-col items-center justify-center mb-20 relative">
+<!-- Glowing Pebble Circle -->
+<div class="w-64 h-64 rounded-full bg-primary/30 dark:bg-primary/20 blur-2xl absolute transition-all duration-1000"></div>
+<div class="w-48 h-48 rounded-full bg-primary shadow-lg shadow-primary/50 relative z-10 flex items-center justify-center transition-all duration-1000">
+<div class="w-40 h-40 rounded-full bg-slate-100/10 border border-white/20"></div>
+</div>
+</div>
+<div class="flex flex-col items-center max-w-sm w-full">
+<p class="text-slate-600 dark:text-slate-400 text-lg font-medium leading-normal pb-4 px-4 text-center">Safe to reply in:</p>
+<div class="flex gap-4 w-full mb-12">
+<div class="flex grow basis-0 flex-col items-stretch gap-2">
+<div class="flex h-16 grow items-center justify-center rounded-xl px-3 bg-slate-300 dark:bg-slate-800 shadow-inner">
+<p class="text-slate-800 dark:text-slate-200 text-2xl font-bold leading-tight tracking-wider">00</p>
+</div>
+<div class="flex items-center justify-center"><p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal">Hours</p></div>
+</div>
+<div class="flex items-center pb-8">
+<span class="text-2xl font-bold text-slate-400 dark:text-slate-500">:</span>
+</div>
+<div class="flex grow basis-0 flex-col items-stretch gap-2">
+<div class="flex h-16 grow items-center justify-center rounded-xl px-3 bg-slate-300 dark:bg-slate-800 shadow-inner">
+<p class="text-slate-800 dark:text-slate-200 text-2xl font-bold leading-tight tracking-wider">01</p>
+</div>
+<div class="flex items-center justify-center"><p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal">Minutes</p></div>
+</div>
+<div class="flex items-center pb-8">
+<span class="text-2xl font-bold text-slate-400 dark:text-slate-500">:</span>
+</div>
+<div class="flex grow basis-0 flex-col items-stretch gap-2">
+<div class="flex h-16 grow items-center justify-center rounded-xl px-3 bg-slate-300 dark:bg-slate-800 shadow-inner">
+<p class="text-slate-800 dark:text-slate-200 text-2xl font-bold leading-tight tracking-wider">59</p>
+</div>
+<div class="flex items-center justify-center"><p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal">Seconds</p></div>
+</div>
+</div>
+<div class="flex px-4 py-3 justify-center w-full">
+<button class="flex w-full max-w-[200px] cursor-not-allowed items-center justify-center overflow-hidden rounded-full h-12 px-8 bg-slate-300/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-base font-bold leading-normal tracking-wide transition-colors border border-transparent" disabled="">
+<span class="material-symbols-outlined mr-2 text-sm">lock</span>
+<span class="truncate">Exit</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</body></html>

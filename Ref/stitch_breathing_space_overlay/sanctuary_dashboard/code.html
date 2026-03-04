@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-width=1.0" name="viewport"/>
+<title>Sanctuary Dashboard - Pebble</title>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#7e8da0",
+              "background-light": "#f7f7f7",
+              "background-dark": "#17191b",
+              "pebble-grey": "#F5F5F7",
+            },
+            fontFamily: {
+              "display": ["Spline Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+            boxShadow: {
+              'stone': '0 20px 40px -10px rgba(0,0,0,0.05)',
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-primary/10 px-10 py-4 bg-background-light dark:bg-background-dark sticky top-0 z-10">
+<div class="flex items-center gap-4 text-slate-900 dark:text-slate-100">
+<div class="size-6 text-primary">
+<svg class="w-full h-full" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M39.475 21.6262C40.358 21.4363 40.6863 21.5589 40.7581 21.5934C40.7876 21.655 40.8547 21.857 40.8082 22.3336C40.7408 23.0255 40.4502 24.0046 39.8572 25.2301C38.6799 27.6631 36.5085 30.6631 33.5858 33.5858C30.6631 36.5085 27.6632 38.6799 25.2301 39.8572C24.0046 40.4502 23.0255 40.7407 22.3336 40.8082C21.8571 40.8547 21.6551 40.7875 21.5934 40.7581C21.5589 40.6863 21.4363 40.358 21.6262 39.475C21.8562 38.4054 22.4689 36.9657 23.5038 35.2817C24.7575 33.2417 26.5497 30.9744 28.7621 28.762C30.9744 26.5497 33.2417 24.7574 35.2817 23.5037C36.9657 22.4689 38.4054 21.8562 39.475 21.6262ZM4.41189 29.2403L18.7597 43.5881C19.8813 44.7097 21.4027 44.9179 22.7217 44.7893C24.0585 44.659 25.5148 44.1631 26.9723 43.4579C29.9052 42.0387 33.2618 39.5667 36.4142 36.4142C39.5667 33.2618 42.0387 29.9052 43.4579 26.9723C44.1631 25.5148 44.659 24.0585 44.7893 22.7217C44.9179 21.4027 44.7097 19.8813 43.5881 18.7597L29.2403 4.41187C27.8527 3.02428 25.8765 3.02573 24.2861 3.36776C22.6081 3.72863 20.7334 4.58419 18.8396 5.74801C16.4978 7.18716 13.9881 9.18353 11.5858 11.5858C9.18354 13.988 7.18717 16.4978 5.74802 18.8396C4.58421 20.7334 3.72865 22.6081 3.36778 24.2861C3.02574 25.8765 3.02429 27.8527 4.41189 29.2403Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-xl font-bold tracking-tight">Pebble</h2>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-6 text-sm font-medium text-slate-600 dark:text-slate-300">
+<a class="hover:text-primary transition-colors" href="#">Sanctuary</a>
+<a class="hover:text-primary transition-colors" href="#">History</a>
+<a class="hover:text-primary transition-colors" href="#">Settings</a>
+</nav>
+<div class="bg-primary/20 bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 shadow-sm border border-primary/10" data-alt="Portrait of Alex, the user" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBv1YF_nr8jaVPkEg5KUy5d6Fy9kfogAb21FzFKdrTClPUhQfXNmovv16AKBO1KRkvFs8xEJ9b9sl_MLZ0jsMI8NxIyypWeQm8zuDsryDkvgKdY6zsV9xguwu8ciNemYLuDgUjp485ofRDI6eDmkudlkbgKpoCaCF5CP7f6OYUrJ4468cnDMhQDlVVfZBJzRoMgJDWKUdJGSoZyrT3WdR7vX3woQugmP1VpC45436FOxsXiM1uRymaRdvrHHJMJ9HSW_NJZuFQDDkcf");'></div>
+</div>
+</header>
+<main class="flex-1 flex flex-col items-center justify-center py-16 px-6 lg:px-20 max-w-7xl mx-auto w-full gap-16">
+<div class="text-center space-y-4 animate-fade-in-up max-w-2xl mx-auto">
+<h1 class="text-4xl md:text-5xl font-light text-slate-800 dark:text-slate-100 tracking-tight leading-snug">
+                        Breathe, Alex. <br/>You are safe here.
+                    </h1>
+<p class="text-lg text-slate-500 dark:text-slate-400 font-medium">Take a moment to center yourself before continuing.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+<button class="group flex flex-col items-center justify-center gap-6 rounded-[2rem] bg-white dark:bg-slate-800 p-10 h-[350px] shadow-stone hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-slate-100 dark:border-slate-700 relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="size-20 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-4xl">search</span>
+</div>
+<div class="text-center z-10">
+<h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">The Decoder</h2>
+<p class="text-sm text-slate-500 dark:text-slate-400">Analyze messages objectively</p>
+</div>
+</button>
+<button class="group flex flex-col items-center justify-center gap-6 rounded-[2rem] bg-white dark:bg-slate-800 p-10 h-[350px] shadow-stone hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-slate-100 dark:border-slate-700 relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="size-20 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-4xl">balance</span>
+</div>
+<div class="text-center z-10">
+<h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">The Dojo</h2>
+<p class="text-sm text-slate-500 dark:text-slate-400">Practice gray rocking responses</p>
+</div>
+</button>
+<button class="group flex flex-col items-center justify-center gap-6 rounded-[2rem] bg-white dark:bg-slate-800 p-10 h-[350px] shadow-stone hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-slate-100 dark:border-slate-700 relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<div class="size-20 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+<span class="material-symbols-outlined text-4xl">local_florist</span>
+</div>
+<div class="text-center z-10">
+<h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">Breathe</h2>
+<p class="text-sm text-slate-500 dark:text-slate-400">Guided calming exercises</p>
+</div>
+</button>
+</div>
+</main>
+<footer class="py-6 text-center text-sm text-slate-400 dark:text-slate-500 border-t border-primary/5 mt-auto">
+<p>© 2024 Pebble. A safe space for communication.</p>
+</footer>
+</div>
+</div>
+</body></html>
