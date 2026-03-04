@@ -1,0 +1,165 @@
+{
+  "scenarios": [
+    {
+      "id": "parent_marriage_pressure",
+      "title": "催婚压力",
+      "description": "父母不断施压要求结婚生子",
+      "difficulty": "medium",
+      "antagonist": {
+        "name": "妈妈",
+        "avatar": "warning"
+      },
+      "openings": [
+        "你看看隔壁小王，孩子都会打酱油了，你还在挑什么？",
+        "我都这把年纪了，就想着抱孙子，你能不能体谅一下我的心情？",
+        "再不抓紧好姑娘都被别人挑走了，到时候你后悔都来不及！"
+      ],
+      "attacks": [
+        "你是不是想让我死不瞑目？",
+        "白养你了，一点都不孝顺。",
+        "你这样下去会孤独终老的！",
+        "亲戚朋友都问起来，我都没脸见人。"
+      ]
+    },
+    {
+      "id": "parent_career_interference",
+      "title": "职业干涉",
+      "description": "父母试图干涉你的职业选择",
+      "difficulty": "hard",
+      "antagonist": {
+        "name": "爸爸",
+        "avatar": "warning"
+      },
+      "openings": [
+        "听爸的，去考公务员才是正道，你现在那工作不稳定。",
+        "我都跟李叔叔说好了，你去他那个公司上班，年薪高。"
+      ],
+      "attacks": [
+        "你太幼稚了，根本不懂什么叫稳定！",
+        "我这个过来人吃的盐比你吃的米都多。",
+        "你这个行业能有啥前途？",
+        "我这是为你好，你怎么就不明白？"
+      ]
+    },
+    {
+      "id": "partner_financial_control",
+      "title": "经济控制",
+      "description": "伴侣试图控制你的经济自主权",
+      "difficulty": "hard",
+      "antagonist": {
+        "name": "伴侣",
+        "avatar": "warning"
+      },
+      "openings": [
+        "你挣那么多钱干什么？交给我来管吧。",
+        "咱俩是一家人，你的就是我的，干嘛分那么清楚？"
+      ],
+      "attacks": [
+        "你不想让我管钱，是不是心里有鬼？",
+        "夫妻之间还谈什么钱不钱的，你太计较了！",
+        "你不信任我？",
+        "别人家都是老婆管钱，就你特殊！"
+      ]
+    },
+    {
+      "id": "partner_social_restriction",
+      "title": "社交限制",
+      "description": "伴侣试图限制你的社交活动",
+      "difficulty": "hard",
+      "antagonist": {
+        "name": "伴侣",
+        "avatar": "warning"
+      },
+      "openings": [
+        "今晚那个聚会别去了，在家陪我不好吗？",
+        "你那些朋友有什么好的，只会带你瞎玩。"
+      ],
+      "attacks": [
+        "你根本不在乎我的感受！",
+        "是不是有人你就特别想见？",
+        "结婚了就应该以家庭为重！",
+        "你朋友比我还重要是吧？"
+      ]
+    },
+    {
+      "id": "boss_overtime_demands",
+      "title": "加班施压",
+      "description": "老板以各种理由要求你无偿加班",
+      "difficulty": "medium",
+      "antagonist": {
+        "name": "老板",
+        "avatar": "work"
+      },
+      "openings": [
+        "小王啊，今晚加个班，这个项目比较急。",
+        "年轻人要多锻炼，这个周末你再来公司一下吧。"
+      ],
+      "attacks": [
+        "别人都能加班，就你特殊？",
+        "你这样怎么能有进步？",
+        "公司现在正是用人之际，你要有大局观。",
+        "加班费？年轻人不要太计较钱。"
+      ]
+    },
+    {
+      "id": "relative_borrowing_money",
+      "title": "亲戚借钱",
+      "description": "亲戚以各种理由借钱不还",
+      "difficulty": "medium",
+      "antagonist": {
+        "name": "表哥",
+        "avatar": "warning"
+      },
+      "openings": [
+        "兄弟，手头宽裕不？借哥五万周转一下。",
+        "你是不知道哥最近多难，那个项目黄了。"
+      ],
+      "attacks": [
+        "咱俩这关系，你还怕我不还？",
+        "你变了，以前你不是这样的。",
+        "我都跟人说你肯定会帮，你让我怎么做人？",
+        "你这点钱算什么，别那么小气。"
+      ]
+    },
+    {
+      "id": "in_law_comparison",
+      "title": "婆媳/岳婿比较",
+      "description": "父母拿你和其他人比较",
+      "difficulty": "hard",
+      "antagonist": {
+        "name": "婆婆/岳母",
+        "avatar": "warning"
+      },
+      "openings": [
+        "你看你姐夫，每次来都大包小包的。",
+        "人家小丽多会来事儿，你得多学学。"
+      ],
+      "attacks": [
+        "怎么我说你两句你还不高兴了？",
+        "我这不是为你好吗？",
+        "你看看人家老公/老婆，再看看你。",
+        "你这样让我怎么跟亲戚说？"
+      ]
+    },
+    {
+      "id": "parent_guilt_trip",
+      "title": "情感勒索",
+      "description": "父母用牺牲感来操控你",
+      "difficulty": "hard",
+      "antagonist": {
+        "name": "妈妈",
+        "avatar": "warning"
+      },
+      "openings": [
+        "我这一辈子都是为了你，你就这样对我？",
+        "我把你养这么大容易吗？"
+      ],
+      "attacks": [
+        "我这身体都是为你累垮的！",
+        "你翅膀硬了，不需要我了是吧？",
+        "我做的一切都是为了你，你还不知足？",
+        "等我死了你就自由了！"
+      ]
+    }
+  ]
+}
