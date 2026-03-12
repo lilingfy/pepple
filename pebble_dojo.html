@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pebble AI - 模拟陪练场 (Practice Dojo)</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Noto Serif SC, Noto Sans SC, Public Sans -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&amp;family=Noto+Sans+SC:wght@300;400;500;700&amp;family=Public+Sans:wght@300;400;600&amp;display=swap" rel="stylesheet"/>
+<!-- Google Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<script id="tailwind-config">    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#7D8C9F",
+            "safe-green": "#A8D8B9",
+            "background-light": "#F0F6F2",
+            "moss-green": "#D5E5D5",
+            "accent-gold": "#BCA564",
+            "deep-heal-green": "#8BA895",
+          },
+          fontFamily: {
+            "display": ["Public Sans", "Noto Sans SC"],
+            "serif": ["Noto Serif SC", "serif"],
+          },
+          borderRadius: {
+            "pebble-1": "2rem 3rem 2.5rem 4rem",
+            "pebble-2": "4rem 2rem 3.5rem 2.5rem",
+            "pebble-3": "3rem 4rem 2rem 3.5rem",
+          },
+          animation: {
+            'breathing': 'breathing 8s ease-in-out infinite',
+          },
+          keyframes: {
+            breathing: {
+              '0%, 100%': { transform: 'scale(1)', opacity: '0.15' },
+              '50%': { transform: 'scale(1.1)', opacity: '0.25' },
+            }
+          },
+          boxShadow: {
+            'hover-spread': '0 10px 25px rgba(125, 140, 159, 0.3), inset 0 0 10px rgba(255, 255, 255, 0.1)',
+          },
+          transitionTimingFunction: {
+            'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
+          }
+        },
+      },
+    }</script>
+<style data-purpose="custom-layouts">
+    .fluid-bg {
+      background: radial-gradient(circle at 10% 20%, #A8D8B9 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, #D5E5D5 0%, transparent 40%),
+                  #F0F6F2;
+    }
+    .pebble-shadow {
+      box-shadow: 10px 10px 20px rgba(125, 140, 159, 0.08), -5px -5px 15px rgba(255, 255, 255, 0.7);
+    }
+    .chat-container::-webkit-scrollbar {
+      width: 4px;
+    }
+    .chat-container::-webkit-scrollbar-thumb {
+      background: #A8D8B9;
+      border-radius: 10px;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    .circular-progress {
+      background: conic-gradient(#A8D8B9 85%, #E2E8F0 0);
+    }
+  </style>
+</head>
+<body class="bg-background-light font-display text-slate-800 h-screen overflow-hidden">
+<div class="fluid-bg h-full flex flex-col relative overflow-hidden">
+<!-- BEGIN: Breathing Background Elements -->
+<div class="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-safe-green/20 rounded-full blur-[100px] animate-breathing pointer-events-none"></div>
+<div class="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[100px] animate-breathing pointer-events-none" style="animation-delay: -4s;"></div>
+<!-- END: Breathing Background Elements -->
+<!-- BEGIN: MainHeader -->
+<header class="fixed w-full z-50 px-8 py-6 flex justify-between items-center bg-white/60 backdrop-blur-xl border-b border-white/40">
+<!-- Logo -->
+<div class="flex items-center space-x-4 cursor-pointer group" data-purpose="logo">
+<div class="w-10 h-10 bg-primary rounded-[60%_40%_70%_30%/_40%_50%_60%_40%] group-hover:bg-safe-green group-hover:rotate-12 group-hover:scale-110 transition-all duration-500"></div>
+<span class="text-2xl font-medium tracking-[0.2em] text-primary group-hover:text-safe-green transition-colors duration-500">Pebble AI</span>
+</div>
+<!-- Navigation Menu -->
+<nav class="hidden md:flex items-center space-x-3 bg-white/40 px-3 py-1.5 rounded-full border border-white/60 shadow-sm">
+<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-primary hover:bg-safe-green/20 hover:text-slate-800 transition-all duration-300" href="#">首页</a>
+<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-primary hover:bg-safe-green/20 hover:text-slate-800 transition-all duration-300" href="#">读心翻译</a>
+<a class="px-7 py-3 rounded-full text-base font-bold tracking-widest text-slate-800 bg-safe-green/20 relative transition-all duration-300" href="#">
+          模拟陪练
+          <span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-safe-green rounded-full animate-pulse"></span>
+</a>
+<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-primary hover:bg-safe-green/20 hover:text-slate-800 transition-all duration-300" href="#">急救呼吸</a>
+</nav>
+<!-- User Actions -->
+<div class="flex items-center space-x-6 text-primary">
+<button class="hover:text-safe-green transition-colors relative" title="系统通知">
+<span class="material-symbols-outlined text-2xl">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-rose-400 rounded-full"></span>
+</button>
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-safe-green transition-all overflow-hidden border border-white/40" title="个人中心">
+<span class="material-symbols-outlined">person</span>
+</div>
+</div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: MainContent -->
+<main class="flex-1 max-w-[1600px] mx-auto w-full px-8 pt-32 pb-8 grid grid-cols-12 gap-8 relative z-10">
+<!-- BEGIN: LeftSidebar (Session Info) -->
+<aside class="col-span-3 flex flex-col gap-6"><div class="glass-card p-6 rounded-pebble-3 pebble-shadow mb-2">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-safe-green">theater_comedy</span>
+<h2 class="font-bold text-slate-700 tracking-wider">场景选择</h2>
+</div>
+<div class="flex flex-wrap gap-2">
+<button class="px-4 py-1.5 rounded-full text-xs font-bold bg-safe-green text-slate-800 border border-safe-green transition-all shadow-sm">
+      职场越界
+    </button>
+<button class="px-4 py-1.5 rounded-full text-xs font-light text-primary border border-primary/20 hover:bg-safe-green/10 hover:border-safe-green/40 transition-all">
+      亲密关系
+    </button>
+<button class="px-4 py-1.5 rounded-full text-xs font-light text-primary border border-primary/20 hover:bg-safe-green/10 hover:border-safe-green/40 transition-all">
+      社交应对
+    </button>
+</div>
+</div>
+<div class="glass-card p-6 rounded-pebble-1 pebble-shadow">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-safe-green">psychology</span>
+<h2 class="font-bold text-slate-700 tracking-wider">心理语境</h2>
+</div>
+<div class="space-y-4">
+<div class="bg-white/40 p-4 rounded-2xl border border-white/60">
+<p class="text-xs font-bold text-primary mb-1">情境：职场越界</p>
+<p class="text-sm text-slate-600 leading-relaxed">一位资深同事试图让你在周末无偿加班，并带有道德绑架。你需要温和但坚定地拒绝。</p>
+</div>
+<div class="flex items-center gap-2 px-1">
+<span class="material-symbols-outlined text-xs text-accent-gold">verified</span>
+<span class="text-xs text-slate-500 italic">达成目标：维持职业边界，不JADE（辩解、辩论、解释）。</span>
+</div>
+</div>
+</div>
+<div class="glass-card p-6 rounded-pebble-2 pebble-shadow">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-safe-green">lightbulb</span>
+<h2 class="font-bold text-slate-700 tracking-wider">技巧锦囊</h2>
+</div>
+<ul class="space-y-3">
+<li class="flex items-start gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-safe-green mt-1.5 shrink-0"></span>
+<span class="text-sm text-slate-600"><strong>灰岩法 (Gray Rock):</strong> 像灰岩一样平平无奇，不提供情感刺激。</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-safe-green mt-1.5 shrink-0"></span>
+<span class="text-sm text-slate-600"><strong>肯定+否定:</strong> “我很理解项目的紧迫性，但我这周末已有安排，无法协助。”</span>
+</li>
+</ul>
+</div>
+</aside>
+<!-- END: LeftSidebar -->
+<!-- BEGIN: CentralChatArea -->
+<section class="col-span-6 flex flex-col h-full bg-white/20 backdrop-blur-sm rounded-[3rem] pebble-shadow border border-white/50 overflow-hidden">
+<!-- Chat Display -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8 chat-container" data-purpose="chat-history">
+<!-- AI Message (Opponent) -->
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-[40%_60%_30%_70%] bg-slate-300 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white text-xl">flare</span>
+</div>
+<div class="max-w-[80%] bg-slate-200/80 backdrop-blur-sm p-5 rounded-[0.5rem_2rem_2.5rem_2rem] border border-slate-300/30 text-slate-700 leading-relaxed">
+              “大家都在为了这个项目冲刺，你作为核心成员，这周末如果不来盯着，万一出问题谁负责？这种时候不应该有点团队精神吗？”
+            </div>
+</div>
+<!-- User Message -->
+<div class="flex items-start gap-4 flex-row-reverse">
+<div class="w-10 h-10 rounded-[60%_40%_70%_30%] bg-safe-green flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white text-xl">face</span>
+</div>
+<div class="max-w-[80%] bg-moss-green/60 backdrop-blur-sm p-5 rounded-[2rem_0.5rem_2rem_2.5rem] border border-safe-green/30 text-slate-700 leading-relaxed">
+              “我知道项目进度很关键，但我周末的时间已经提前规划好了，无法参与加班。周一早上我会第一时间跟进。”
+            </div>
+</div>
+<!-- AI Message (Opponent) -->
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-[40%_60%_30%_70%] bg-slate-300 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white text-xl">flare</span>
+</div>
+<div class="max-w-[80%] bg-slate-200/80 backdrop-blur-sm p-5 rounded-[0.5rem_2rem_2.5rem_2rem] border border-slate-300/30 text-slate-700 leading-relaxed">
+              “规划好的事情可以推迟嘛，毕竟公司的事更紧急。你这么坚持，是不是对团队有什么意见？”
+            </div>
+</div>
+</div>
+<!-- Chat Input -->
+<div class="p-6 bg-white/40 border-t border-white/60">
+<div class="relative flex items-center">
+<input class="w-full h-16 pl-8 pr-20 rounded-full border-none bg-white/80 pebble-shadow focus:ring-2 focus:ring-safe-green text-slate-700 placeholder:text-slate-400" placeholder="输入你的回应..." type="text"/>
+<button class="absolute right-2 w-12 h-12 bg-safe-green text-white rounded-[45%_55%_70%_30%] flex items-center justify-center hover:scale-110 active:scale-95 transition-transform shadow-lg">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+<div class="flex justify-center gap-6 mt-4 text-primary/60">
+<button class="flex items-center gap-1 text-xs hover:text-safe-green transition-colors">
+<span class="material-symbols-outlined text-sm">mic</span> 语音输入
+             </button>
+<button class="flex items-center gap-1 text-xs hover:text-safe-green transition-colors">
+<span class="material-symbols-outlined text-sm">restart_alt</span> 重启本局
+             </button>
+</div>
+</div>
+</section>
+<!-- END: CentralChatArea -->
+<!-- BEGIN: RightSidebar (Coaching) -->
+<aside class="col-span-3 flex flex-col gap-6">
+<!-- Neutral Tone Visualizer -->
+<div class="glass-card p-8 rounded-pebble-3 pebble-shadow flex flex-col items-center text-center bg-white/30 backdrop-blur-2xl border-white/60 relative overflow-hidden">
+<!-- Decorative Light Glow -->
+<div class="absolute -top-10 -right-10 w-24 h-24 bg-yellow-200/30 blur-3xl rounded-full"></div>
+<h3 class="font-bold text-slate-700 mb-6 tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-safe-green animate-pulse">insights</span>
+    实时情绪分析
+  </h3>
+<div class="relative w-36 h-36 flex items-center justify-center mb-6">
+<!-- Outer Glow -->
+<div class="absolute inset-0 rounded-full bg-safe-green/20 blur-xl animate-breathing"></div>
+<!-- Progress Circle -->
+<div class="absolute inset-0 rounded-full border-[6px] border-white/50"></div>
+<div class="absolute inset-0 rounded-full border-[6px] border-safe-green border-t-transparent -rotate-45 shadow-[0_0_15px_rgba(168,216,185,0.8)]"></div>
+<!-- Center Score -->
+<div class="w-28 h-28 rounded-full bg-white/90 flex flex-col items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
+<span class="text-4xl font-bold text-safe-green [text-shadow:_0_0_10px_rgba(168,216,185,0.4)]">85</span>
+<span class="text-[10px] text-safe-green/60 uppercase tracking-widest font-bold">SCORE</span>
+</div>
+</div>
+<div class="bg-safe-green/10 px-4 py-1.5 rounded-full mb-3">
+<p class="text-sm font-bold text-deep-heal-green [text-shadow:_0_0_8px_rgba(255,255,255,0.8)]">中性度得分: 优秀</p>
+</div>
+<p class="text-xs text-slate-600/80 leading-relaxed max-w-[200px]">
+    你成功识别了情绪陷阱。当前语气<span class="text-deep-heal-green font-medium">非常克制</span>，有效避免了对抗性升级。
+  </p>
+</div>
+<!-- Feedback Snippets -->
+<div class="glass-card p-6 rounded-pebble-1 pebble-shadow">
+<h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-sm">analytics</span> 陪练建议</h3>
+<div class="space-y-4">
+<div class="border-l-2 border-safe-green pl-3">
+<p class="text-xs font-bold text-slate-500 mb-1">即时反馈</p>
+<p class="text-sm text-slate-600">“我时间已规划好” —— 简洁有力，未陷入“解释”陷阱。保持住！</p>
+</div>
+<div class="border-l-2 border-accent-gold/40 pl-3">
+<p class="text-xs font-bold text-slate-500 mb-1">注意点</p>
+<p class="text-sm text-slate-600 italic">对方可能在试图激怒你，观察他的辞藻，不要被“团队精神”四个字带节奏。</p>
+</div>
+</div>
+</div>
+<button class="mt-auto w-full py-4 bg-primary text-white rounded-full font-bold tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 group duration-300 ease-smooth hover:-translate-y-1 hover:scale-105 hover:bg-deep-heal-green hover:shadow-hover-spread"><span class="material-symbols-outlined text-xl group-hover:rotate-12 transition-transform">flag</span> 结束演练</button>
+</aside>
+<!-- END: RightSidebar -->
+</main>
+<!-- END: MainContent -->
+<!-- BEGIN: Decorative Elements -->
+<div class="fixed bottom-[-50px] left-[-50px] opacity-10 pointer-events-none">
+<svg height="300" viewbox="0 0 200 200" width="300">
+<path d="M150 100C150 150 120 180 80 180C40 180 20 150 20 100C20 50 50 20 100 20C150 20 150 50 150 100Z" fill="#A8D8B9"></path>
+</svg>
+</div>
+<!-- END: Decorative Elements -->
+</div>
+</body></html>
