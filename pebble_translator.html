@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&amp;family=Noto+Sans+SC:wght@300;400;500;700&amp;family=Public+Sans:wght@300;400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#7D8C9F",
+                        "safe-green": "#A8D8B9",
+                        "background-light": "#F0F6F2",
+                        "background-dark": "#1a1f1c",
+                        "moss-green": "#D5E5D5",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "Noto Sans SC"],
+                        "serif": ["Noto Serif SC", "serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "pebble": "2rem 3rem 2.5rem 4rem",
+                        "pebble-alt": "4rem 2rem 3.5rem 2.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .fluid-bg {
+            background: radial-gradient(circle at 20% 30%, #A8D8B9 0%, transparent 40%),
+                        radial-gradient(circle at 80% 70%, #D5E5D5 0%, transparent 40%),
+                        #F0F6F2;
+        }
+        .pebble-shadow {
+            box-shadow: 10px 10px 20px rgba(125, 140, 159, 0.1), -5px -5px 15px rgba(255, 255, 255, 0.8);
+        }
+        .pebble-inset {
+            box-shadow: inset 6px 6px 12px rgba(125, 140, 159, 0.15), inset -6px -6px 12px rgba(255, 255, 255, 0.8);
+        }
+        .decode-glow {
+            box-shadow: 0 0 25px rgba(168, 216, 185, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 h-screen overflow-hidden">
+<div class="fluid-bg h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="fixed w-full z-50 px-8 py-6 flex justify-between items-center bg-white/60 backdrop-blur-xl border-b border-white/40"><!-- Logo -->
+<div class="flex items-center space-x-4 cursor-pointer group" data-purpose="logo">
+<div class="w-10 h-10 bg-[#7D8C9F] rounded-[60%_40%_70%_30%/_40%_50%_60%_40%] group-hover:bg-[#A8D8B9] group-hover:rotate-12 group-hover:scale-110 transition-all duration-500"></div>
+<span class="text-2xl font-medium tracking-[0.2em] text-[#7D8C9F] group-hover:text-[#A8D8B9] transition-colors duration-500">Pebble AI</span>
+</div>
+<!-- Navigation Menu -->
+<div class="hidden md:flex items-center space-x-3 bg-white/40 px-3 py-1.5 rounded-full border border-white/60 shadow-sm">
+<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] transition-all duration-300" href="#">首页</a>
+<a class="px-7 py-3 rounded-full text-base font-[700] tracking-widest text-[#2C3E50] bg-[#A8D8B9]/20 relative transition-all duration-300 font-bold" href="#">
+    读心翻译<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#A8D8B9] rounded-full animate-pulse"></span>
+</a>
+<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] transition-all duration-300" href="#">模拟陪练</a>
+<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] transition-all duration-300" href="#">急救呼吸</a>
+</div>
+<!-- User Actions -->
+<div class="flex items-center space-x-6 text-[#7D8C9F]">
+<button class="hover:text-[#A8D8B9] transition-colors">
+<span class="material-symbols-outlined text-2xl">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-[#7D8C9F]/20 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-[#A8D8B9] transition-all overflow-hidden">
+<span class="material-symbols-outlined">person</span>
+</div>
+</div></header>
+<!-- Main Content -->
+<main class="flex-1 max-w-[1400px] mx-auto w-full p-8 grid grid-cols-1 lg:grid-cols-12 gap-12 pt-32 items-start">
+    
+    <div class="lg:col-span-5 flex flex-col gap-6 mt-28">
+        <div class="flex items-center gap-3 mb-6 group">
+    <div class="flex flex-col items-center">
+        <span class="text-6xl font-black tracking-tighter text-[#BCA564] leading-none">
+            AI
+        </span>
+        <div class="h-[3px] w-10 bg-[#BCA564]/60 rounded-full mt-2"></div>
+    </div>
+    
+    <div class="h-12 w-[1.5px] bg-slate-300/50 mx-1"></div>
+    
+    <div class="flex flex-col justify-center">
+        <h1 class="text-3xl font-bold text-slate-800 tracking-widest leading-none">
+            读心<span class="text-primary/80">翻译器</span>
+        </h1>
+        <div class="flex items-center gap-2 mt-2">
+            <span class="text-xs font-serif italic text-slate-400 tracking-wider">Empathic Insight Engine</span>
+            <span class="relative flex h-1.5 w-1.5">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-safe-green opacity-40"></span>
+                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-safe-green/60"></span>
+            </span>
+        </div>
+    </div>
+</div>
+        
+        <div class="flex flex-col gap-4">
+            <label class="text-sm font-bold text-primary/80 ml-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">psychology_alt</span>
+                收到信息 (压力源)
+            </label>
+            <div class="relative">
+                <textarea class="w-full h-80 rounded-pebble bg-white/60 border-none pebble-inset p-8 text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-safe-green transition-all resize-none font-sans leading-relaxed" placeholder="在此粘贴让你感到压力的信息，例如：'这件事你怎么还没做完？我不是上周就说了吗？'"></textarea>
+                <div class="absolute bottom-6 right-8 left-8 flex justify-between items-center text-slate-300">
+                    <div class="flex gap-4">
+                        <button class="text-[#7D8C9F] hover:text-[#A8D8B9] transition-colors"><span class="material-symbols-outlined">mic</span></button>
+                        <button class="text-[#7D8C9F] hover:text-[#A8D8B9] transition-colors"><span class="material-symbols-outlined">attach_file</span></button>
+                    </div>
+                    <span class="material-symbols-outlined">edit_note</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 flex flex-wrap items-center justify-between bg-white/30 backdrop-blur-md rounded-full px-6 py-3 border border-white/40 pebble-shadow w-full transition-all hover:bg-white/50">
+            <div class="flex items-center gap-3">
+                <div class="relative flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-safe-green opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-safe-green"></span>
+                </div>
+                <span class="text-sm font-medium text-slate-600">情绪检测：平稳观察中</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-xs text-slate-400 italic hidden md:block">频率正常，适合进行理性解码</span>
+                <div class="flex items-center gap-1 bg-moss-green/30 px-3 py-1 rounded-full">
+                    <span class="material-symbols-outlined text-safe-green text-[16px]">favorite</span>
+                    <span class="text-sm font-serif font-bold text-safe-green">85%</span>
+                </div>
+            </div>
+        </div>
+    </div> 
+    <div class="lg:col-span-2 flex flex-col items-center justify-center self-center z-10">
+    <button class="group relative flex items-center justify-center w-32 h-32 md:w-40 md:h-40 bg-safe-green hover:bg-safe-green/90 text-white rounded-[45%_55%_70%_30%/30%_40%_60%_70%] decode-glow transition-all duration-500 transform hover:scale-105 active:scale-95 shadow-xl">
+        <div class="flex flex-col items-center">
+            <span class="material-symbols-outlined text-4xl mb-1 text-[#FDF0B5] drop-shadow-[0_0_8px_rgba(255,237,148,0.6)] group-hover:rotate-180 transition-transform duration-700">auto_awesome</span>
+            <span class="font-bold text-lg tracking-widest">解码</span>
+        </div>
+        <div class="absolute -top-4 -right-2 w-4 h-4 bg-[#FFED94]/70 backdrop-blur-sm rounded-full shadow-[0_0_10px_rgba(255,237,148,0.4)] animate-pulse"></div>
+        <div class="absolute -bottom-6 -left-4 w-6 h-6 bg-moss-green rounded-full"></div>
+    </button>
+</div>
+    <div class="lg:col-span-5 flex flex-col h-full gap-6 mt-28">
+        <div class="flex flex-col gap-3">
+            <h3 class="text-sm font-bold text-primary/80 ml-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">hearing</span>表面语义 (Surface Meaning)
+            </h3>
+            <div class="bg-slate-100/60 backdrop-blur-sm rounded-pebble p-6 pebble-shadow border border-white/40">
+                <p class="text-slate-600 leading-relaxed">“你怎么这么自私，连这点忙都不帮？”</p>
+            </div>
+        </div>
+        
+        <div class="flex flex-col gap-3">
+            <h3 class="text-sm font-bold text-primary/80 ml-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">visibility</span>潜台词 (Subtext)
+            </h3>
+            <div class="bg-moss-green/50 backdrop-blur-sm rounded-pebble-alt p-6 pebble-shadow border border-white/40">
+                <p class="text-slate-700 leading-relaxed italic">“对方可能正处于焦虑中，这句话的重点不在于你的进度，而在于他对手头项目失控感的投射。他需要的不是解释，而是确定感。”</p>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-primary/80 ml-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">layers</span>灰岩回复建议 (Gray Rock Replies)
+            </h3>
+            <div class="space-y-4">
+                <div class="bg-white/80 rounded-pebble p-5 pebble-shadow transform translate-x-2 transition-transform hover:translate-x-0 cursor-default border-l-4 border-safe-green">
+                    <div class="flex items-start gap-3">
+                        <span class="text-xs font-bold text-safe-green bg-safe-green/10 px-2 py-1 rounded-full">方案 A</span>
+                        <p class="text-slate-600 text-sm">“收到了，我正在处理，预计今天下午五点前发给你。”</p>
+                    </div>
+                </div>
+                <div class="bg-white/70 rounded-pebble p-5 pebble-shadow transform transition-transform hover:translate-x-0 cursor-default border-l-4 border-[#FFED94]/80 translate-x-1">
+    <div class="flex items-start gap-3">
+        <span class="text-xs font-bold text-[#A88B32] bg-[#FFED94]/30 px-2 py-1 rounded-full border border-[#FFED94]/40">方案 B</span>
+        <p class="text-slate-600 text-sm whitespace-nowrap">“明白了，进度目前大约是 80%，完成后我会第一时间同步。”</p>
+    </div>
+</div>
+                <div class="bg-white/60 rounded-pebble p-5 pebble-shadow transform transition-transform hover:translate-x-0 cursor-default border-l-4 border-slate-300 translate-x-2">
+                    <div class="flex items-start gap-3">
+                        <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">方案 C</span>
+                        <p class="text-slate-600 text-sm">“已经在路上了，很快就好。”</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-center gap-4 py-6 w-full">
+            <button class="group flex items-center gap-2 px-8 py-2.5 rounded-full border border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 transition-all text-sm font-medium bg-white/20 backdrop-blur-sm active:scale-95">
+    <span class="material-symbols-outlined text-lg transition-all duration-300 group-hover:text-slate-700 group-hover:scale-110 group-hover:[font-variation-settings:'FILL'1]">
+        content_copy
+    </span> 
+    复制建议
+</button>
+            <button class="group flex items-center gap-2 px-8 py-2.5 rounded-full bg-primary text-white hover:bg-primary/90 transition-all duration-300 text-sm font-medium shadow-md active:scale-95">
+    <span class="material-symbols-outlined text-lg transition-all duration-300 group-hover:text-rose-300 group-hover:[font-variation-settings:'FILL'1] group-hover:scale-110">
+        favorite
+    </span> 
+    存入练习本
+</button>
+        </div>
+    </div>
+    </main>
+<!-- Decorative elements -->
+<div class="fixed bottom-10 left-10 opacity-20 pointer-events-none">
+<svg fill="none" height="200" viewbox="0 0 200 200" width="200" xmlns="http://www.w3.org/2000/svg">
+<path d="M150 100C150 150 120 180 80 180C40 180 20 150 20 100C20 50 50 20 100 20C150 20 150 50 150 100Z" fill="#A8D8B9"></path>
+</svg>
+</div>
+<div class="fixed top-40 right-10 opacity-10 pointer-events-none rotate-45">
+<svg fill="none" height="150" viewbox="0 0 200 200" width="150" xmlns="http://www.w3.org/2000/svg">
+<path d="M180 100C180 160 140 190 100 190C60 190 30 140 30 100C30 60 60 10 100 10C140 10 180 40 180 100Z" fill="#7D8C9F"></path>
+</svg>
+</div>
+</div>
+</body></html>
