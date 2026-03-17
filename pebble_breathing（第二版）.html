@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>急救呼吸 - Pebble AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'pebble-bg': '#F0F6F2',
+            'pebble-rock': '#7D8C9F',
+            'pebble-healing': '#A8D8B9',
+            'pebble-green-soft': '#D1E7DD',
+            'amber-warm': '#E6B422',
+          },
+          fontFamily: {
+            'serif-sc': ['"Noto Serif SC"', 'serif'],
+            'sans-sc': ['"Noto Sans SC"', 'sans-serif'],
+          },
+        }
+      }
+    }
+</script>
+<style data-purpose="animations">
+    @keyframes etherealBreathing {
+      0% { 
+        transform: scale(1); 
+        box-shadow: 0 0 50px rgba(168, 216, 185, 0.2), inset 0 0 30px rgba(255,255,255,0.4); 
+      }
+      21% { 
+        transform: scale(1.35); 
+        box-shadow: 0 0 100px rgba(168, 216, 185, 0.6), inset 0 0 60px rgba(255,255,255,0.8); 
+      }
+      58% { 
+        transform: scale(1.35); 
+        box-shadow: 0 0 100px rgba(168, 216, 185, 0.6), inset 0 0 60px rgba(255,255,255,0.8); 
+      }
+      100% { 
+        transform: scale(1); 
+        box-shadow: 0 0 50px rgba(168, 216, 185, 0.2), inset 0 0 30px rgba(255,255,255,0.4); 
+      }
+    }
+
+    .animate-ethereal-breathing {
+      animation: etherealBreathing 19s ease-in-out infinite;
+    }
+
+    @keyframes etherealStatusUpdate {
+      0%, 20.9% { content: '吸气'; color: #2C5545; } 
+      21%, 57.9% { content: '屏息'; color: #7D8C9F; }
+      58%, 100% { content: '呼气'; color: #4A6B5D; }
+    }
+
+    @keyframes etherealInstructionUpdate {
+      0%, 20.9% { content: 'DEEP INHALE (4S)'; }
+      21%, 57.9% { content: 'HOLD GENTLY (7S)'; }
+      58%, 100% { content: 'SLOW EXHALE (8S)'; }
+    }
+
+    .status-sync-ethereal::after {
+      content: '吸气';
+      animation: etherealStatusUpdate 19s linear infinite;
+    }
+
+    .instruction-sync-ethereal::after {
+      content: 'DEEP INHALE (4S)';
+      animation: etherealInstructionUpdate 19s linear infinite;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes etherealPulse {
+      0%, 100% { opacity: 0.5; filter: blur(8px); transform: scale(1); }
+      50% { opacity: 0.8; filter: blur(12px); transform: scale(1.02); }
+    }
+
+    .mist-diffusion {
+      background: radial-gradient(circle, rgba(168, 216, 185, 0.15) 0%, transparent 70%);
+      animation: etherealPulse 8s ease-in-out infinite;
+    }
+
+    @keyframes ambientFloat {
+        0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+        50% { transform: translate(-45%, -55%) scale(1.2); opacity: 0.5; }
+    }
+
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    }
+
+    .warm-glow {
+        text-shadow: 0 0 15px rgba(230, 180, 34, 0.4);
+    }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;600&display=swap" rel="stylesheet"/>
+</head>
+<body class="bg-pebble-bg font-sans-sc text-pebble-rock h-screen overflow-hidden select-none">
+
+<div class="fixed inset-0 z-0 pointer-events-none" data-purpose="background-ambience">
+    <div class="absolute top-[20%] left-[20%] rounded-full bg-amber-100/40 w-[600px] h-[600px] blur-[120px]" style="animation: ambientFloat 15s ease-in-out infinite;"></div>
+    <div class="absolute bottom-[10%] right-[10%] rounded-full bg-pebble-healing/20 w-[700px] h-[700px] blur-[100px]" style="animation: ambientFloat 20s ease-in-out infinite-reverse;"></div>
+</div>
+
+<header class="fixed w-full z-50 px-8 py-6 flex justify-between items-center backdrop-blur-xl border-b border-white/40 top-0" style="background-color: rgba(240, 246, 242, 0.6);">
+<div class="flex items-center space-x-4 cursor-pointer group" data-purpose="logo">
+<div class="w-10 h-10 bg-[#7D8C9F] rounded-[60%_40%_70%_30%/_40%_50%_60%_40%] group-hover:bg-[#A8D8B9] group-hover:rotate-12 group-hover:scale-110 transition-all duration-500"></div>
+<span class="text-2xl font-medium tracking-[0.2em] text-[#7D8C9F] group-hover:text-[#A8D8B9] transition-colors duration-500">Pebble AI</span>
+</div>
+<div class="hidden md:flex items-center space-x-3 bg-white/40 px-3 py-1.5 rounded-full border border-white/60 shadow-sm">
+<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] hover:font-bold transition-all duration-300" href="#">首页</a>
+<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] hover:font-bold transition-all duration-300" href="#">读心翻译</a>
+<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] hover:font-bold transition-all duration-300" href="#">模拟陪练</a>
+<a class="px-7 py-3 rounded-full text-base font-[700] tracking-widest text-[#2C3E50] bg-[#A8D8B9]/20 relative transition-all duration-300" href="#">
+    急救呼吸<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#A8D8B9] rounded-full animate-pulse"></span>
+</a>
+</div>
+<div class="flex items-center space-x-6 text-[#7D8C9F]">
+<div class="relative group cursor-pointer">
+<button class="hover:text-[#A8D8B9] transition-colors flex items-center">
+<span class="material-symbols-outlined text-2xl">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-rose-400 rounded-full border border-white"></span>
+</button>
+<div class="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1 bg-white border border-slate-200 shadow-sm rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+<span class="text-xs text-slate-600 font-medium">系统通知</span>
+</div>
+</div>
+<div class="relative group">
+<div class="w-10 h-10 rounded-full bg-[#7D8C9F]/20 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-[#A8D8B9] transition-all overflow-hidden">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div class="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-3 py-1 bg-white border border-slate-200 shadow-sm rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+<span class="text-xs text-slate-600 font-medium">个人中心</span>
+</div>
+</div>
+</div>
+</header>
+<main class="relative z-10 h-[calc(100vh-88px)] flex flex-col items-center px-4 py-12 mt-[8vh] justify-center" data-purpose="emergency-breathing-module">
+    
+<div class="text-center mb-8 mb-12" data-purpose="module-title">
+<p class="text-xs tracking-[0.3em] uppercase mb-4 opacity-60 font-medium">EMERGENCY BREATHING</p>
+<h1 class="font-serif-sc text-5xl font-bold flex items-center justify-center space-x-5">
+  <svg class="w-10 h-10 text-[#E8D499] fill-current drop-shadow-sm" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0Z"/>
+  </svg>
+  
+  <span class="text-[#7D8C9F]">急救呼吸</span>
+  
+  <svg class="w-10 h-10 text-[#E8D499] fill-current drop-shadow-sm" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0Z"/>
+  </svg>
+</h1>
+<p class="mt-6 text-sm opacity-70 max-w-md mx-auto leading-relaxed">
+        情绪淹没时，请点击下方，跟随光晕的律动找回平静。
+</p>
+</div>
+
+<div class="relative flex items-center justify-center mb-6 mt-16 w-full h-[400px]" data-purpose="breathing-interaction">
+  <div class="absolute w-[450px] h-[450px] rounded-full bg-gradient-to-tr from-[#c8e6d3] to-[#e4f2e9] blur-[50px] opacity-50 pointer-events-none"></div>
+
+  <div class="relative z-20 flex flex-col items-center justify-center rounded-full bg-gradient-to-b from-[#d9efe2] to-[#c8e6d3] w-72 h-72 md:w-80 md:h-80 transition-all duration-1000 animate-ethereal-breathing cursor-pointer group" id="pebble-trigger">
+    
+    <div class="text-center flex flex-col items-center justify-center z-30 transform transition-transform duration-700 group-hover:scale-105">
+      <span class="block font-serif-sc text-4xl md:text-5xl font-bold mb-4 tracking-[0.3em] status-sync-ethereal drop-shadow-sm"></span>
+      <span class="block text-[11px] md:text-xs uppercase tracking-[0.25em] text-[#9CA3AF] font-medium instruction-sync-ethereal"></span>
+    </div>
+
+  </div>
+</div>
+
+<div class="text-center mb-8 relative z-50 group">
+  <div class="absolute inset-0 mist-diffusion -z-10 scale-150"></div>
+  <p class="font-serif-sc font-light text-xl text-[#7D8C9F]/80 tracking-[0.4em] px-12 py-2">
+    请放空思绪，跟随律动呼吸
+  </p>
+</div>
+
+<div class="flex flex-col items-center -mt-4 relative z-40" data-purpose="cooldown-inhibitor">
+  <div class="glass-panel rounded-[2rem] px-10 py-6 flex items-center space-x-10">
+      <div class="flex flex-col">
+          <span class="text-[9px] font-bold opacity-40 tracking-[0.2em] mb-1">建议平静时长</span>
+          <div class="font-mono text-3xl font-light text-amber-warm warm-glow" id="timer">01:59</div>
+      </div>
+      <div class="h-10 w-[1px] bg-slate-300/50"></div>
+      <div class="flex flex-col items-center group">
+          <span class="material-symbols-outlined text-amber-warm animate-pulse mb-1">flare</span>
+          <span class="text-[9px] opacity-40 font-bold tracking-tighter">AI 引导中</span>
+      </div>
+  </div>
+  <p class="mt-4 text-[11px] opacity-40 uppercase tracking-[0.2em]">Reactive reply inhibitor active</p>
+</div>
+</main>
+<footer class="fixed bottom-0 w-full px-10 py-6 flex justify-between items-center text-[10px] opacity-40 font-medium z-50">
+<div>© 2026 PEBBLE AI EMOTION DEFENSE. 本地化存储，隐私优先。</div>
+<div class="flex space-x-6">
+<a class="hover:text-black transition-colors" href="#">隐私政策</a>
+<a class="hover:text-black transition-colors" href="#">使用条款</a>
+</div>
+</footer>
+<script data-purpose="breathing-logic">
+    const timerElement = document.getElementById('timer');
+
+    let timeLeft = 119;
+    const countdown = setInterval(() => {
+      if (timeLeft <= 0) {
+        clearInterval(countdown);
+        timerElement.innerText = "00:00";
+        return;
+      }
+      timeLeft--;
+      const mins = Math.floor(timeLeft / 60);
+      const secs = timeLeft % 60;
+      timerElement.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }, 1000);
+</script>
+</body>
+</html>
