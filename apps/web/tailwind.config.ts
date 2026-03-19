@@ -1,51 +1,51 @@
-import type { Config } from "tailwindcss";
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  darkMode: "class",
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    './app/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './lib/**/*.{ts,tsx}',
+    './tests/**/*.{ts,tsx}',
   ],
   theme: {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#7e8da0",
-          50: "#f4f6f8",
-          100: "#e8ecf2",
-          200: "#d1d9e5",
-          300: "#b3c0d4",
-          400: "#95a7c3",
-          500: "#7e8da0",
-          600: "#6b7a8b",
-          700: "#525f6d",
-          800: "#434b56",
-          900: "#3a4048",
+          DEFAULT: 'var(--color-primary)',
+          600: '#6B7A90',
+          700: '#5C697C',
         },
-        "background-light": "#f7f7f7",
-        "background-dark": "#17191b",
-        "bg-light": "#f7f7f7",
-        "bg-dark": "#17191b",
-        "storm-bg": "#eef2f5",
-        "shelter-bg": "#ffffff",
-        "insight-bg": "#e6f2ed",
-        "insight-text": "#2d6a4f",
+        'background-light': 'var(--color-bg-light)',
+        'background-dark': 'var(--color-bg-dark)',
+        'storm-bg': 'var(--color-storm-bg)',
+        'shelter-bg': 'var(--color-shelter-bg)',
+        'insight-bg': 'var(--color-insight-bg)',
+        'insight-text': 'var(--color-insight-text)',
       },
       borderRadius: {
-        DEFAULT: "1rem",
-        lg: "2rem",
-        xl: "3rem",
-        full: "9999px",
+        pebble: 'var(--radius-pebble)',
+        'pebble-1': 'var(--radius-pebble-1)',
+        'pebble-2': 'var(--radius-pebble-2)',
+        'pebble-3': 'var(--radius-pebble-3)',
+      },
+      boxShadow: {
+        glass: 'var(--shadow-pebble-glass)',
+        pebble: 'var(--shadow-pebble-soft)',
+        glow: 'var(--shadow-pebble-glow)',
       },
       fontFamily: {
-        display: ["Spline Sans", "sans-serif"],
-        header: ["Quicksand", "sans-serif"],
-        body: ["Nunito", "sans-serif"],
+        serif: ['var(--font-pebble-serif)'],
+        sans: ['var(--font-pebble-sans)'],
+        display: ['var(--font-pebble-display)'],
+      },
+      transitionDuration: {
+        brisk: 'var(--motion-pebble-brisk)',
+        gentle: 'var(--motion-pebble-gentle)',
+        reveal: 'var(--motion-pebble-reveal)',
+        ambient: 'var(--motion-pebble-ambient)',
       },
     },
   },
-  plugins: [],
 };
 
 export default config;

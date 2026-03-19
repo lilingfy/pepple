@@ -1,7 +1,9 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
-import { Inter, Noto_Sans_SC } from "next/font/google";
+import { Inter, Noto_Sans_SC, Noto_Serif_SC, Public_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
+import { pebbleCssVariables } from "@/lib/design-system/tokens";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -13,6 +15,19 @@ const notoSansSC = Noto_Sans_SC({
   subsets: ["latin"],
   weight: ["300", "400", "500", "700"],
   variable: "--font-noto-sans-sc",
+  display: "swap",
+});
+
+const notoSerifSC = Noto_Serif_SC({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-noto-serif-sc",
+  display: "swap",
+});
+
+const publicSans = Public_Sans({
+  subsets: ["latin"],
+  variable: "--font-public-sans",
   display: "swap",
 });
 
@@ -28,7 +43,11 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="zh-CN" className={`${inter.variable} ${notoSansSC.variable}`}>
+      <html
+        lang="zh-CN"
+        className={`${inter.variable} ${notoSansSC.variable} ${notoSerifSC.variable} ${publicSans.variable}`}
+        style={pebbleCssVariables as CSSProperties}
+      >
         <body className="font-sans antialiased">
           {children}
           <script

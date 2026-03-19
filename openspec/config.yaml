@@ -1,20 +1,124 @@
 schema: spec-driven
 
-# 项目上下文（可选）
-# 在创建工件时向 AI 显示此信息。
-# 添加您的技术栈、约定、风格指南、领域知识等。
-# 示例：
-#   context: |
-#     技术栈：TypeScript, React, Node.js
-#     我们使用约定式提交
-#     领域：电商平台
+context: |
+  项目名称：Pebble AI 情绪防御助手
+  项目代号：pebble-ai
 
-# 每个工件的规则（可选）
-# 为特定工件添加自定义规则。
-# 示例：
-#   rules:
-#     proposal:
-#       - 保持提案在500字以内
-#       - 始终包含"非目标"部分
-#     tasks:
-#       - 将任务分解为最多2小时的块
+  目标：
+  将现有设计稿落地为生产级 Next.js 15 + TypeScript Web 应用，并以 OpenSpec 驱动前后端实现。
+
+  技术栈：
+  - Next.js 15
+  - React 19
+  - TypeScript 5
+  - Tailwind CSS 4
+  - Framer Motion 11
+  - Zustand 5
+  - Immer 10
+  - shadcn/ui
+
+  前端真相源：
+  - /Users/xyh/Code/pebble/pebble_breathing（第二版）.html
+  - /Users/xyh/Code/pebble/pebble_dojo(第二版）.html
+  - /Users/xyh/Code/pebble/pebble_translator（(第二版）.html
+  后端必须适配这些前端，不允许反向修改前端契约来迁就后端。
+
+  功能任务书：
+  - TB-005：设计系统与组件库
+  - TB-001：首页
+  - TB-002：读心翻译器
+  - TB-003：模拟陪练场
+  - TB-004：急救呼吸
+  - TB-006：后端 BFF 与接口
+
+  任务书位置：
+  - /Users/xyh/Code/pebble/docs/taskbook/00-任务书总览.md
+  - /Users/xyh/Code/pebble/docs/taskbook/01-项目概述与索引.md
+  - /Users/xyh/Code/pebble/docs/taskbook/TB-001-首页模块技术预研.md
+  - /Users/xyh/Code/pebble/docs/taskbook/TB-002-读心翻译器技术预研.md
+  - /Users/xyh/Code/pebble/docs/taskbook/TB-003-模拟陪练场技术预研.md
+  - /Users/xyh/Code/pebble/docs/taskbook/TB-004-急救呼吸技术预研.md
+  - /Users/xyh/Code/pebble/docs/taskbook/TB-005-设计系统与组件库预研.md
+  - /Users/xyh/Code/pebble/docs/taskbook/TB-006-后端BFF与接口技术预研.md
+
+  执行清单位置：
+  - /Users/xyh/Code/pebble/docs/taskbook/TB-001-执行清单.md
+  - /Users/xyh/Code/pebble/docs/taskbook/TB-002-执行清单.md
+  - /Users/xyh/Code/pebble/docs/taskbook/TB-003-执行清单.md
+  - /Users/xyh/Code/pebble/docs/taskbook/TB-004-执行清单.md
+  - /Users/xyh/Code/pebble/docs/taskbook/TB-006-执行清单.md
+
+  前端范围：
+  - 首页路由：/
+  - 读心翻译器路由：/translator
+  - 模拟陪练场路由：/dojo
+  - 急救呼吸路由：/breathing
+  - 先复用 TB-005 设计系统，再实现页面模块。
+  - 所有前端任务都已拆成执行清单，优先按执行清单落地。
+
+  后端范围：
+  - 后端采用 BFF 架构，直接服务当前前端。
+  - 服务器是 source of truth，前端只保留缓存和展示状态。
+  - practice 是唯一后端命名，不使用 practice-book。
+  - 急救呼吸页面默认纯前端运行，不依赖后端主链路。
+
+  后端主接口：
+  - POST /api/decode
+  - GET /api/scenarios
+  - POST /api/simulator
+  - POST /api/simulator/[sessionId]/end
+  - POST /api/practice
+  - GET /api/practice
+  - PATCH /api/practice/[practiceId]
+  - DELETE /api/practice/[practiceId]
+
+  核心契约要求：
+  - 翻译器必须输出 surfaceMeaning、subtext、emotionStatus、emotionScore、replySuggestions。
+  - 陪练场必须输出稳定的 start / turn / restart / end 语义。
+  - 陪练场 rightPanel 必须包含 analysisScore、analysisLabel、analysisSummary、instantFeedback、attentionPoint。
+  - 所有公开接口必须先定义 DTO，再实现 route 和 service。
+
+  数据与安全约束：
+  - 只存最小必要数据。
+  - 原始文本优先脱敏，必要时加密。
+  - 所有外部调用必须有超时、限流、错误映射和 deterministic fallback。
+  - 高风险文本应走安全降级响应。
+
+  实现约束：
+  - 遵循 TDD：先测试，后实现，再重构。
+  - 遵循 SOLID，保持模块化。
+  - 优先用精确文件边界拆分 route、service、repository、policy、types。
+  - 不为迎合旧实现而偏离任务书和第二版 HTML。
+  - 变更任务时优先同步相关 taskbook、执行清单和 OpenAPI 文档。
+
+  设计系统约束：
+  - 统一鹅卵石视觉语言、玻璃拟态、柔和安全感配色。
+  - 保持中英文混排质感，不随意改主文案。
+  - 动效必须服务信息层级和情绪引导，不能堆砌装饰。
+
+rules:
+  proposal:
+    - 提案必须明确目标、范围、非目标、依赖、风险和验收方式。
+    - 提案必须引用相关 taskbook 和执行清单，不能脱离现有任务书体系单独定义需求。
+    - 涉及前端时，必须声明第二版 HTML 是唯一真相源，并写明对应页面和路由。
+    - 涉及后端时，必须写明受影响接口、DTO、持久化对象和 fallback 策略。
+    - 提案必须包含 TDD 策略，至少写明 Red、Green、Refactor、Document 四步。
+    - 提案必须包含测试映射，说明每个用户场景由哪些测试覆盖。
+    - 提案不得通过修改前端契约来掩盖后端设计问题。
+
+  tasks:
+    - 所有任务必须按 TDD 顺序编写：先写失败测试，再写最小实现，再重构，再补文档与回归验证。
+    - 每个任务应控制在 0.5 到 2 小时内，超过该粒度必须继续拆分。
+    - 每个任务必须写清楚目标、涉及文件、验证命令和完成定义。
+    - 任务必须区分前端、后端、数据库、文档和测试，避免混成不可验证的大任务。
+    - 任何接口变更任务必须同时包含 DTO、route、service、tests、OpenAPI 同步。
+    - 任何页面变更任务必须同时包含响应式检查、可访问性检查和关键交互测试。
+    - 完成任务后必须同步相关 taskbook、执行清单和必要文档。
+
+  specs:
+    - 规范必须只描述最终行为和稳定契约，不写实现过程性的临时细节。
+    - 规范字段名必须与前端展示字段和公开 API 保持一致，避免同义多名。
+    - 规范必须区分必需字段、可选字段、错误响应和边界条件。
+    - 规范必须写明输入校验、错误映射、安全约束和 fallback 行为。
+    - 规范中的接口、数据模型和页面交互必须可以被测试直接验证。
+    - 规范更新后，如影响 taskbook 或执行清单，必须同步修订。

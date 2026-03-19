@@ -48,15 +48,19 @@ export function Card({
     ? 'cursor-pointer hover:shadow-md active:scale-[0.98] transition-all duration-200'
     : '';
 
+  const Component = onClick ? 'button' : 'div';
+
   return (
-    <div
+    <Component
       className={cn(
-        'rounded-2xl border p-6 shadow-sm',
+        'rounded-[var(--radius-pebble-2)] border p-6 shadow-glass text-left',
+        variant === 'default' || variant === 'shelter' ? 'pebble-glass' : '',
         variantStyles[variant],
         interactiveStyles,
         className
       )}
       onClick={onClick}
+      type={onClick ? 'button' : undefined}
     >
       {(icon || title) && (
         <div className="flex items-center gap-3 mb-4">
@@ -76,7 +80,7 @@ export function Card({
         </div>
       )}
       {children}
-    </div>
+    </Component>
   );
 }
 
@@ -105,3 +109,5 @@ export function CardDescription({
 }) {
   return <p className={cn('text-sm text-gray-600', className)}>{children}</p>;
 }
+
+export const GlassCard = Card;

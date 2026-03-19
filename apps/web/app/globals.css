@@ -6,12 +6,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 :root {
-  --color-primary: #7e8da0;
-  --color-bg-light: #f7f7f7;
+  --color-primary: var(--color-pebble-rock);
+  --color-bg-light: var(--color-pebble-bg);
   --color-bg-dark: #17191b;
-  --color-storm-bg: #eef2f5;
-  --color-shelter-bg: #ffffff;
-  --color-insight-bg: #e6f2ed;
+  --color-storm-bg: var(--color-pebble-storm);
+  --color-shelter-bg: var(--color-pebble-shelter);
+  --color-insight-bg: var(--color-pebble-insight);
   --color-insight-text: #2d6a4f;
 }
 
@@ -23,14 +23,23 @@
   body {
     @apply bg-background-light text-gray-900;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-pebble-sans);
   }
 
   /* Chinese font optimization */
   .font-sans {
-    font-family: var(--font-noto-sans-sc), var(--font-inter), system-ui,
+    font-family: var(--font-pebble-sans), var(--font-noto-sans-sc), var(--font-inter), system-ui,
       -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
       Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
       "Segoe UI Symbol", "Noto Color Emoji";
+  }
+
+  .font-serif {
+    font-family: var(--font-pebble-serif), var(--font-noto-serif-sc), Georgia, serif;
+  }
+
+  .font-display {
+    font-family: var(--font-pebble-display), var(--font-public-sans), var(--font-inter), sans-serif;
   }
 
   /* Material Symbols base styles */
@@ -47,6 +56,15 @@
     white-space: nowrap;
     word-wrap: normal;
     direction: ltr;
+  }
+}
+
+@layer components {
+  .pebble-glass {
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    box-shadow: var(--shadow-pebble-glass);
   }
 }
 
