@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-
-<html lang="zh-CN"><head>
+<html lang="zh-CN">
+<head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&amp;family=Noto+Sans+SC:wght@300;400;500;700&amp;family=Public+Sans:wght@300;400;600&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Public+Sans:wght@300;400;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -54,22 +54,19 @@
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 h-screen overflow-hidden">
 <div class="fluid-bg h-screen flex flex-col">
-<!-- Top Navigation Bar -->
-<header class="fixed w-full z-50 px-8 py-6 flex justify-between items-center bg-white/60 backdrop-blur-xl border-b border-white/40"><!-- Logo -->
+<header class="fixed w-full z-50 px-8 py-6 flex justify-between items-center bg-white/60 backdrop-blur-xl border-b border-white/40">
 <div class="flex items-center space-x-4 cursor-pointer group" data-purpose="logo">
 <div class="w-10 h-10 bg-[#7D8C9F] rounded-[60%_40%_70%_30%/_40%_50%_60%_40%] group-hover:bg-[#A8D8B9] group-hover:rotate-12 group-hover:scale-110 transition-all duration-500"></div>
 <span class="text-2xl font-medium tracking-[0.2em] text-[#7D8C9F] group-hover:text-[#A8D8B9] transition-colors duration-500">Pebble AI</span>
 </div>
-<!-- Navigation Menu -->
 <div class="hidden md:flex items-center space-x-3 bg-white/40 px-3 py-1.5 rounded-full border border-white/60 shadow-sm">
-<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] transition-all duration-300" href="#">首页</a>
+<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] hover:font-bold transition-all duration-300" href="#">首页</a>
 <a class="px-7 py-3 rounded-full text-base font-[700] tracking-widest text-[#2C3E50] bg-[#A8D8B9]/20 relative transition-all duration-300 font-bold" href="#">
     读心翻译<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#A8D8B9] rounded-full animate-pulse"></span>
 </a>
-<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] transition-all duration-300" href="#">模拟陪练</a>
-<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] transition-all duration-300" href="#">急救呼吸</a>
+<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] hover:font-bold transition-all duration-300" href="#">模拟陪练</a>
+<a class="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] hover:font-bold transition-all duration-300" href="#">急救呼吸</a>
 </div>
-<!-- User Actions -->
 <div class="flex items-center space-x-6 text-[#7D8C9F]">
     
     <div class="relative group cursor-pointer">
@@ -92,7 +89,6 @@
     </div>
 
 </div></header>
-<!-- Main Content -->
 <main class="flex-1 max-w-[1400px] mx-auto w-full p-8 grid grid-cols-1 lg:grid-cols-12 gap-12 pt-32 items-start">
     
     <div class="lg:col-span-5 flex flex-col gap-6 mt-28">
@@ -225,7 +221,6 @@
         </div>
     </div>
     </main>
-<!-- Decorative elements -->
 <div class="fixed bottom-10 left-10 opacity-20 pointer-events-none">
 <svg fill="none" height="200" viewbox="0 0 200 200" width="200" xmlns="http://www.w3.org/2000/svg">
 <path d="M150 100C150 150 120 180 80 180C40 180 20 150 20 100C20 50 50 20 100 20C150 20 150 50 150 100Z" fill="#A8D8B9"></path>

@@ -32,7 +32,7 @@ export default function DashboardPage() {
       title: ZH_CN.decoder,
       description: ZH_CN.decoderDesc,
       detail: ZH_CN.decoderDetail,
-      href: '/decoder',
+      href: '/translator',
       variant: 'storm' as const,
     },
     {
@@ -41,7 +41,7 @@ export default function DashboardPage() {
       title: ZH_CN.simulator,
       description: ZH_CN.simulatorDesc,
       detail: ZH_CN.simulatorDetail,
-      href: '/simulator',
+      href: '/dojo',
       variant: 'shelter' as const,
     },
     {
@@ -50,7 +50,7 @@ export default function DashboardPage() {
       title: ZH_CN.breathing,
       description: ZH_CN.breathingDesc,
       detail: ZH_CN.breathingDetail,
-      href: '/panic',
+      href: '/breathing',
       variant: 'insight' as const,
     },
   ];

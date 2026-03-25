@@ -32,8 +32,8 @@ const publicSans = Public_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Pebble",
-  description: "Pebble - A modern web application for emotional boundary setting",
+  title: "Pebble AI - 模拟陪练场",
+  description: "Pebble AI - 情绪防御助手的模拟陪练场",
 };
 
 export default function RootLayout({
@@ -48,6 +48,14 @@ export default function RootLayout({
         className={`${inter.variable} ${notoSansSC.variable} ${notoSerifSC.variable} ${publicSans.variable}`}
         style={pebbleCssVariables as CSSProperties}
       >
+        <head>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+          />
+        </head>
         <body className="font-sans antialiased">
           {children}
           <script

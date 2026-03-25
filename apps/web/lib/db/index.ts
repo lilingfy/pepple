@@ -1,10 +1,10 @@
 /**
  * Database Connection for Pebble
- * Uses Drizzle ORM with PostgreSQL (Neon)
+ * Uses Drizzle ORM with PostgreSQL (Neon via standard pg driver)
  */
 
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 import * as schema from './schema';
 
 /**
@@ -20,10 +20,13 @@ function createDB() {
   }
 
   try {
-    const sql = neon(connectionString);
-    return drizzle(sql, { schema });
+    const pool = new Pool({
+      connectionString,
+      ssl: connectionString.includes('sslmode=require') ? { rejectUnauthorized: false } : undefined,
+    });
+    return drizzle(pool, { schema });
   } catch (error) {
-    console.error('Failed to connect to database:', error);
+    console.error('Failed to create database pool:', error);
     return null;
   }
 }

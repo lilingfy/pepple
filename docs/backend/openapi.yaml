@@ -1,0 +1,657 @@
+openapi: 3.0.3
+info:
+  title: Pebble AI Backend API
+  description: |
+    Pebble AI 后端 API 文档。
+
+    主要功能：
+    - 读心翻译器：分析文本中的情感操控模式
+    - 练习本：保存和管理练习条目
+    - 模拟陪练场：情景模拟对话练习
+
+    所有 API 响应遵循统一格式：
+    - 成功: `{ "success": true, "data": {...} }`
+    - 失败: `{ "success": false, "error": { "code": "...", "message": "...", "requestId": "..." } }`
+  version: 1.0.0
+  contact:
+    name: Pebble AI Team
+
+servers:
+  - url: http://localhost:3000/api
+    description: 本地开发环境
+
+paths:
+  /decode:
+    post:
+      summary: 分析文本情感
+      description: |
+        分析用户输入的文本，识别其中的情感操控模式，
+        并提供回复建议。
+      tags:
+        - 读心翻译器
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecodeRequest'
+      responses:
+        '200':
+          description: 分析成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: 请求过于频繁
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /practice:
+    get:
+      summary: 获取练习条目列表
+      description: |
+        获取当前用户的练习条目列表，支持分页和筛选。
+      tags:
+        - 练习本
+      parameters:
+        - name: sourceType
+          in: query
+          schema:
+            type: string
+            enum: [decode, simulator]
+          description: 按来源类型筛选
+        - name: isFavorite
+          in: query
+          schema:
+            type: boolean
+          description: 按收藏状态筛选
+        - name: isArchived
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: 包含已归档条目
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+          description: 每页数量
+        - name: cursor
+          in: query
+          schema:
+            type: string
+          description: 分页游标
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: 创建练习条目
+      description: |
+        创建新的练习条目。来源可以是翻译器或陪练场。
+      tags:
+        - 练习本
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeCreateRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /practice/{practiceId}:
+    get:
+      summary: 获取单个练习条目
+      description: 获取指定练习条目的详细信息
+      tags:
+        - 练习本
+      parameters:
+        - name: practiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          description: 条目不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      summary: 更新练习条目
+      description: |
+        更新练习条目的元数据（收藏状态、归档状态等）
+      tags:
+        - 练习本
+      parameters:
+        - name: practiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PracticeUpdateRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          description: 条目不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: 删除练习条目
+      description: 永久删除指定的练习条目
+      tags:
+        - 练习本
+      parameters:
+        - name: practiceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          description: 条目不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /scenarios:
+    get:
+      summary: 获取场景列表
+      description: |
+        获取所有可用的模拟场景。返回三个固定场景，
+        按稳定顺序排列。
+      tags:
+        - 模拟陪练场
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /simulator:
+    post:
+      summary: 模拟陪练场操作
+      description: |
+        处理陪练场会话的各种操作：
+        - start: 开始新会话
+        - continue: 继续现有会话
+        - restart: 重启会话
+      tags:
+        - 模拟陪练场
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimulatorRequest'
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 会话不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /simulator/{sessionId}/end:
+    post:
+      summary: 结束会话
+      description: |
+        结束模拟会话并返回练习总结。
+      tags:
+        - 模拟陪练场
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 结束成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          description: 会话不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # Common Response Schemas
+    SuccessResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - requestId
+          properties:
+            code:
+              type: string
+              enum:
+                - BAD_REQUEST
+                - UNAUTHORIZED
+                - FORBIDDEN
+                - NOT_FOUND
+                - RATE_LIMITED
+                - TIMEOUT
+                - INTERNAL_ERROR
+                - SERVICE_UNAVAILABLE
+            message:
+              type: string
+            details:
+              type: object
+            requestId:
+              type: string
+
+    # Decode API Schemas
+    DecodeRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          description: 需要分析的文本
+          example: "你总是这样自私"
+        context:
+          type: string
+          maxLength: 1000
+          description: 可选的上下文信息
+
+    EmotionAnalysis:
+      type: object
+      required:
+        - attackType
+        - scenario
+        - subtext
+        - emotionScore
+        - neutralityScore
+      properties:
+        attackType:
+          type: string
+          example: "guilt_trip"
+        scenario:
+          type: string
+          example: "manipulation"
+        subtext:
+          type: string
+          example: "对方感到失控，试图通过唤起愧疚感来重新获得控制权"
+        emotionScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 75
+        neutralityScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 25
+
+    ReplyOption:
+      type: object
+      required:
+        - id
+        - label
+        - content
+        - tone
+      properties:
+        id:
+          type: string
+          example: "a"
+        label:
+          type: string
+          example: "确认感受"
+        content:
+          type: string
+          example: "我理解你的想法，让我消化一下。"
+        tone:
+          type: string
+          enum: [neutral, assertive, empathetic]
+          example: "neutral"
+
+    DecodeResponse:
+      type: object
+      required:
+        - analysis
+        - replyOptions
+        - rawInput
+        - processedAt
+      properties:
+        analysis:
+          $ref: '#/components/schemas/EmotionAnalysis'
+        replyOptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReplyOption'
+        rawInput:
+          type: string
+        processedAt:
+          type: string
+          format: date-time
+
+    # Practice API Schemas
+    PracticeCreateRequest:
+      type: object
+      required:
+        - sourceType
+        - primaryReply
+        - content
+      properties:
+        sourceType:
+          type: string
+          enum: [decode, simulator]
+          example: "decode"
+        primaryReply:
+          type: string
+          example: "我理解你的想法，让我消化一下。"
+        content:
+          type: object
+          description: 根据 sourceType 不同，结构不同
+
+    PracticeUpdateRequest:
+      type: object
+      properties:
+        isFavorite:
+          type: boolean
+        isArchived:
+          type: boolean
+        primaryReply:
+          type: string
+
+    PracticeEntry:
+      type: object
+      required:
+        - id
+        - sourceType
+        - primaryReply
+        - content
+        - isFavorite
+        - isArchived
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        sourceType:
+          type: string
+          enum: [decode, simulator]
+        primaryReply:
+          type: string
+        content:
+          type: object
+        isFavorite:
+          type: boolean
+        isArchived:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PracticeListResponse:
+      type: object
+      required:
+        - entries
+        - total
+        - hasMore
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/PracticeEntry'
+        total:
+          type: integer
+        hasMore:
+          type: boolean
+
+    # Simulator API Schemas
+    ScenarioItem:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - difficulty
+        - category
+        - initialMessage
+      properties:
+        id:
+          type: string
+          example: "workplace"
+        name:
+          type: string
+          example: "职场越界"
+        description:
+          type: string
+          example: "应对不合理的加班要求或越界行为"
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+          example: "medium"
+        category:
+          type: string
+          example: "work"
+        initialMessage:
+          type: string
+
+    SimulatorRequest:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [start, continue, restart]
+        scenarioId:
+          type: string
+          description: 开始新会话时必需
+        sessionId:
+          type: string
+          format: uuid
+          description: 继续或重启会话时必需
+        message:
+          type: string
+          description: 继续会话时必需
+
+    SimulatorMessage:
+      type: object
+      required:
+        - role
+        - content
+        - timestamp
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        analysis:
+          type: object
+
+    SimulatorSession:
+      type: object
+      required:
+        - id
+        - scenarioId
+        - scenarioName
+        - messages
+        - status
+        - turnCount
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        scenarioId:
+          type: string
+        scenarioName:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimulatorMessage'
+        status:
+          type: string
+          enum: [active, completed, restarted]
+        turnCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SimulatorResponse:
+      type: object
+      required:
+        - session
+        - reply
+      properties:
+        session:
+          $ref: '#/components/schemas/SimulatorSession'
+        reply:
+          type: string
+        analysis:
+          $ref: '#/components/schemas/EmotionAnalysis'
+
+    SimulatorEndResponse:
+      type: object
+      required:
+        - session
+        - summary
+      properties:
+        session:
+          $ref: '#/components/schemas/SimulatorSession'
+        summary:
+          type: object
+          required:
+            - totalTurns
+            - averageNeutrality
+            - keyLearning
+          properties:
+            totalTurns:
+              type: integer
+            averageNeutrality:
+              type: integer
+            keyLearning:
+              type: string

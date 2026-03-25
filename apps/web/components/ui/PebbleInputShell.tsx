@@ -16,7 +16,14 @@ export function PebbleInputShell({
   className,
 }: PebbleInputShellProps) {
   return (
-    <div className={cn('pebble-glass rounded-[var(--radius-pebble-1)] border border-white/50 p-4 shadow-glass', className)}>
+    <div className={cn(
+      'rounded-pebble bg-white/60 backdrop-blur-sm',
+      'pebble-inset',
+      'border border-white/50 p-4',
+      'transition-shadow duration-300',
+      'focus-within:shadow-lg focus-within:border-[#A8D8B9]/30',
+      className
+    )}>
       {label ? (
         <div className="mb-3 text-sm font-medium tracking-wide text-slate-700">
           {label}
