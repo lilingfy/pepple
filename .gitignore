@@ -36,3 +36,6 @@ drizzle/migrations/
 # Test output
 test-output/
 coverage/
+
+# Git worktrees
+.worktrees/
