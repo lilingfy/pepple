@@ -32,8 +32,8 @@ const publicSans = Public_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Pebble AI - 模拟陪练场",
-  description: "Pebble AI - 情绪防御助手的模拟陪练场",
+  title: "Pebble AI",
+  description: "Pebble AI - 情绪防御助手",
 };
 
 export default function RootLayout({
