@@ -86,9 +86,9 @@ export function RelationDetail({ node, onStartChat, onClose }: RelationDetailPro
 
               {/* 标签 */}
               <div className="flex flex-wrap gap-2 mb-4">
-                {node.tags.map((tag) => (
+                {node.tags.map((tag, index) => (
                   <span
-                    key={tag}
+                    key={`${tag}-${index}`}
                     className={cn(
                       'px-3 py-1 text-xs font-medium rounded-full',
                       colors.bg,

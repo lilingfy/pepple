@@ -106,15 +106,16 @@ export default function NewRelationPage() {
           </div>
 
           {/* 关系类型 */}
-          <div>
-            <label className="block text-white/80 text-sm font-medium mb-2">
+          <fieldset>
+            <legend className="block text-white/80 text-sm font-medium mb-2">
               关系类型
-            </label>
-            <div className="grid grid-cols-4 gap-2">
+            </legend>
+            <div role="radiogroup" aria-label="关系类型" className="grid grid-cols-4 gap-2">
               {RELATIONSHIP_TYPES.map((type) => (
                 <button
                   key={type}
                   type="button"
+                  aria-pressed={formData.relationshipType === type}
                   onClick={() => setFormData((prev) => ({ ...prev, relationshipType: type }))}
                   className={`px-3 py-2 rounded-lg text-sm transition-all ${
                     formData.relationshipType === type
@@ -126,7 +127,7 @@ export default function NewRelationPage() {
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           {/* 标签 */}
           <div>
@@ -151,6 +152,7 @@ export default function NewRelationPage() {
             </div>
             <div className="flex gap-2">
               <input
+                aria-label="自定义标签"
                 type="text"
                 value={customTag}
                 onChange={(e) => setCustomTag(e.target.value)}
@@ -176,6 +178,7 @@ export default function NewRelationPage() {
                     {tag}
                     <button
                       type="button"
+                      aria-label={`移除标签 ${tag}`}
                       onClick={() => toggleTag(tag)}
                       className="hover:text-white"
                     >

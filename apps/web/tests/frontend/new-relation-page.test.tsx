@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/navigation', () => ({
@@ -49,5 +49,26 @@ describe('NewRelationPage form semantics', () => {
     expect(screen.getByLabelText(/^对方特点$/)).toHaveAttribute('name', 'traits');
     expect(screen.getByLabelText(/^期望结果$/)).toHaveAttribute('name', 'goal');
     expect(screen.getByLabelText(/^情境补充（可选）$/)).toHaveAttribute('name', 'context');
+  });
+
+  it('关系类型按钮暴露单选状态语义', () => {
+    render(<NewRelationPage />);
+
+    const bossButton = screen.getByRole('button', { name: '老板' });
+    expect(bossButton).toHaveAttribute('aria-pressed', 'false');
+
+    fireEvent.click(bossButton);
+
+    expect(screen.getByRole('button', { name: '老板' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('自定义标签输入和移除标签按钮都有可读名称', () => {
+    render(<NewRelationPage />);
+
+    expect(screen.getByLabelText('自定义标签')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '职场' }));
+
+    expect(screen.getByRole('button', { name: '移除标签 职场' })).toBeInTheDocument();
   });
 });

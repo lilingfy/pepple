@@ -44,6 +44,7 @@ export function RelationNodeCard({ node, index, onClick, isSelected }: RelationN
       whileHover={{ scale: 1.08, y: -4 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
+      aria-label={node.name}
       className={cn(
         'group relative flex flex-col items-center justify-center',
         'w-20 h-20 rounded-[2rem_3rem_2.5rem_4rem] pebble-glass',

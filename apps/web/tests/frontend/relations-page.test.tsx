@@ -113,4 +113,63 @@ describe('Relations experience accessibility', () => {
 
     expect(screen.getByRole('button', { name: /我的老板/ })).toHaveClass('group');
   });
+
+  it('关系节点对长名称暴露完整可访问名称', () => {
+    render(
+      <RelationNodeCard
+        node={{
+          id: 'relation-2',
+          userId: 'user-1',
+          name: '特别重要的老板',
+          tags: ['职场'],
+          relationshipType: '老板',
+          对方特点: null,
+          期望结果: null,
+          情境补充: null,
+          generatedContext: null,
+          position: 1,
+          createdAt: '2026-03-27T00:00:00Z',
+          updatedAt: '2026-03-27T00:00:00Z',
+        }}
+        index={1}
+        onClick={vi.fn()}
+        isSelected={false}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: '特别重要的老板' })).toBeInTheDocument();
+  });
+
+  it('详情卡在重复标签时不会触发 React 重复 key 警告', () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(
+      <RelationDetail
+        node={{
+          id: 'relation-1',
+          userId: 'user-1',
+          name: '我的老板',
+          tags: ['职场', '职场'],
+          relationshipType: '老板',
+          对方特点: '经常否定我',
+          期望结果: '减少冲突',
+          情境补充: null,
+          generatedContext: null,
+          position: 0,
+          createdAt: '2026-03-27T00:00:00Z',
+          updatedAt: '2026-03-27T00:00:00Z',
+        }}
+        onStartChat={vi.fn()}
+        onClose={vi.fn()}
+      />
+    );
+
+    expect(
+      consoleErrorSpy.mock.calls.some(([message]) =>
+        String(message).includes('Encountered two children with the same key')
+      )
+    ).toBe(false);
+
+    consoleErrorSpy.mockRestore();
+  });
 });
