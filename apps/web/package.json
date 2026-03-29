@@ -16,7 +16,6 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@clerk/nextjs": "^7.0.1",
     "@neondatabase/serverless": "^1.0.2",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",

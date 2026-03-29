@@ -1,24 +1,14 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-// Define protected routes (if any)
-const isProtectedRoute = createRouteMatcher([
-  // Add protected routes here if needed
-  // '/dashboard(.*)',
-  // '/settings(.*)',
-]);
-
-export default clerkMiddleware(async (auth, req) => {
-  // Protect specific routes if needed
-  if (isProtectedRoute(req)) {
-    await auth.protect();
-  }
-});
+export async function middleware(request: NextRequest) {
+  // Minimal middleware - just pass through
+  // TODO: Add Supabase session refresh when Supabase Auth is fully integrated
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
-    '/(api|trpc)(.*)',
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
