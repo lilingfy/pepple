@@ -1,57 +1,41 @@
-import { eq } from 'drizzle-orm';
-import { db, userProfiles } from '@/lib/db';
-import { ensureUserProfile, getAuth } from '@/lib/clerk';
+import { eq } from "drizzle-orm";
+import { db, userProfiles } from "@/lib/db";
 
-const LOCAL_DEV_CLERK_ID = 'local_dev_clerk_id';
-
-function generateId(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
+const LOCAL_DEV_CLERK_ID = "local_dev_clerk_id";
 
 async function ensureLocalDevUser() {
   if (!db) return null;
 
-  const existing = await db.query.userProfiles.findFirst({
-    where: eq(userProfiles.clerkId, LOCAL_DEV_CLERK_ID),
-  });
+  try {
+    // 查找或创建本地开发用户
+    const existing = await db.query.userProfiles.findFirst({
+      where: eq(userProfiles.clerkId, LOCAL_DEV_CLERK_ID),
+    });
 
-  if (existing) return existing;
+    if (existing) return existing;
 
-  const [newProfile] = await db
-    .insert(userProfiles)
-    .values({
-      id: generateId(),
-      clerkId: LOCAL_DEV_CLERK_ID,
-      llmPreference: 'zhipu',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .returning();
+    const [newProfile] = await db
+      .insert(userProfiles)
+      .values({
+        clerkId: LOCAL_DEV_CLERK_ID,
+        llmPreference: "zhipu",
+      })
+      .returning();
 
-  return newProfile;
+    return newProfile;
+  } catch (error) {
+    console.error("Failed to ensure local dev user:", error);
+    return null;
+  }
 }
 
 export async function getCurrentRelationUserId(): Promise<string | null> {
-  try {
-    const { userId } = await getAuth();
-    if (userId) {
-      const profile = await ensureUserProfile(userId);
-      return profile?.id ?? null;
-    }
-  } catch {
-    if (process.env.NODE_ENV !== 'development') {
-      return null;
-    }
+  // 本地开发模式：返回固定用户 ID
+  if (process.env.NODE_ENV === "development") {
+    const profile = await ensureLocalDevUser();
+    return profile?.id ?? null;
   }
 
-  if (process.env.NODE_ENV !== 'development') {
-    return null;
-  }
-
-  const profile = await ensureLocalDevUser();
-  return profile?.id ?? null;
+  // 生产环境：TODO 实现真实的用户认证
+  return null;
 }
