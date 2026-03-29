@@ -14,7 +14,7 @@ export default function MeLayout({
 }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F0F6F2] to-[#E8F0EA]">
-      <AppHeader activeHref="/me" />
+      <AppHeader />
       <div className="pt-24">{children}</div>
     </div>
   );

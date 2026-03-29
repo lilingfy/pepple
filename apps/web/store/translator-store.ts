@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { decode as decodeApi } from '@/lib/frontend/decode-client';
+import { useUserCenterStore } from '@/store/user-center-store';
 import type { DecodeResponse, TranslatorStatus } from '@/types/translator';
 
 interface TranslatorState {
@@ -47,7 +48,11 @@ export const useTranslatorStore = create<TranslatorStore>()(
       });
 
       try {
-        const result = await decodeApi(inputText);
+        const { selectedRelationId } = useUserCenterStore.getState();
+        const result = await decodeApi({
+          text: inputText,
+          relationId: selectedRelationId ?? undefined,
+        });
         set((state) => {
           state.status = 'result';
           state.result = result;

@@ -131,6 +131,25 @@ export const userActivityStats = pgTable('user_activity_stats', {
 });
 
 // ==========================================
+// Relation Nodes (relationship graph)
+// ==========================================
+
+export const relationNodes = pgTable('relation_nodes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => userProfiles.id, { onDelete: 'cascade' }).notNull(),
+  name: varchar('name', { length: 100 }).notNull(),
+  tags: text('tags').default('[]'),
+  relationshipType: varchar('relationship_type', { length: 50 }),
+  对方特点: text('对方特点'),
+  期望结果: text('期望结果'),
+  情境补充: text('情境补充'),
+  generatedContext: text('generated_context'),
+  position: integer('position').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// ==========================================
 // Type Exports
 // ==========================================
 
@@ -157,3 +176,6 @@ export type NewPanicSession = typeof panicSessions.$inferInsert;
 
 export type UserActivityStat = typeof userActivityStats.$inferSelect;
 export type NewUserActivityStat = typeof userActivityStats.$inferInsert;
+
+export type RelationNode = typeof relationNodes.$inferSelect;
+export type NewRelationNode = typeof relationNodes.$inferInsert;

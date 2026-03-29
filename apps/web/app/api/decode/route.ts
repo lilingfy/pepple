@@ -31,6 +31,7 @@ export async function POST(
     const result: DecodeResponse = await analyzeText({
       text: validated.text,
       context: validated.context,
+      relationId: validated.relationId,
     });
 
     return NextResponse.json({

@@ -71,9 +71,9 @@ export default function MePage() {
               </div>
               <div className="flex-1">
                 <h3 className="text-xl font-semibold text-[#2C3E50]">{selectedRelation.name}</h3>
-                <p className="text-sm text-[#7D8C9F] mt-1">{selectedRelation.tags || '未指定关系类型'}</p>
-                {selectedRelation.description && (
-                  <p className="text-sm text-slate-600 mt-2 line-clamp-2">{selectedRelation.description}</p>
+                <p className="text-sm text-[#7D8C9F] mt-1">{selectedRelation.relationshipType || '未指定关系类型'}</p>
+                {selectedRelation.对方特点 && (
+                  <p className="text-sm text-slate-600 mt-2 line-clamp-2">{selectedRelation.对方特点}</p>
                 )}
                 <Link
                   href="/me/relations"

@@ -2,21 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-/**
- * RelationNode type - represents a relationship in the system
- * This will be moved to @pebble/types in a later task
- */
-export interface RelationNode {
-  id: string;
-  userId: string;
-  name: string;
-  description?: string | null;
-  tags?: string | null;
-  position: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import type { RelationNode } from '@pebble/types';
 
 /**
  * UserCenterState - state interface for user center global state

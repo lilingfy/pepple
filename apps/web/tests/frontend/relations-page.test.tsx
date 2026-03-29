@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    back: vi.fn(),
     push: vi.fn(),
   }),
+  useSearchParams: () => new URLSearchParams('back=%2Ftranslator'),
 }));
 
 vi.mock('framer-motion', () => ({
@@ -21,8 +21,15 @@ vi.mock('@/store/relation-store', () => ({
   useRelationStore: vi.fn(),
 }));
 
+vi.mock('@/store/user-center-store', () => ({
+  useUserCenterStore: () => ({
+    selectRelation: vi.fn(),
+    selectedRelationId: null,
+  }),
+}));
+
 import { useRelationStore } from '@/store/relation-store';
-import RelationsPage from '@/app/(main)/relations/page';
+import RelationsPage from '@/app/(main)/me/relations/page';
 import { RelationDetail } from '@/components/relations/RelationDetail';
 import { RelationNodeCard } from '@/components/relations/RelationNode';
 

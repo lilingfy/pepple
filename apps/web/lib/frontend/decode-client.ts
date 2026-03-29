@@ -1,4 +1,5 @@
 import { DecodeError, type DecodeResponse } from '@/types/translator';
+import type { DecodeRequest } from '@pebble/types';
 
 const DECODE_TIMEOUT_MS = 15_000;
 
@@ -10,13 +11,13 @@ function createTimeoutPromise(ms: number): Promise<never> {
   });
 }
 
-export async function decode(text: string): Promise<DecodeResponse> {
+export async function decode(request: DecodeRequest): Promise<DecodeResponse> {
   const controller = new AbortController();
 
   const fetchPromise = fetch('/api/decode', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify(request),
     signal: controller.signal,
   });
 

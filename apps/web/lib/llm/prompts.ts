@@ -141,6 +141,19 @@ export function getSafePrompt(basePrompt: string): string {
   return `${basePrompt}\n\n${SAFETY_GUARD}`;
 }
 
+export function buildDecoderSystemWithContext(relationContext: string): string {
+  if (!relationContext.trim()) {
+    return DECODER_SYSTEM;
+  }
+
+  return `${DECODER_SYSTEM}
+
+【当前对话对象背景】
+${relationContext}
+
+请结合以上背景信息理解对方表达背后的关系动态与沟通意图，但不要在输出中直接复述这些私人背景。`;
+}
+
 /**
  * 文化背景提示词补充
  * 用于增强对中国文化的理解

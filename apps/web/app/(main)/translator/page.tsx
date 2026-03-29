@@ -8,6 +8,7 @@ import { EmotionStatusBar } from '@/components/translator/EmotionStatusBar';
 import { DecodeButton } from '@/components/translator/DecodeButton';
 import { AnalysisResult } from '@/components/translator/AnalysisResult';
 import { ReplySuggestions } from '@/components/translator/ReplySuggestions';
+import { AppHeader } from '@/components/layout/AppHeader';
 import type { DecodeResponse } from '@/types/translator';
 import { cn } from '@/lib/utils';
 import { savePractice } from '@/lib/frontend/practice-client';
@@ -154,7 +155,7 @@ function TranslatorContent() {
   };
 
   return (
-    <main className="min-h-screen fluid-bg-translator relative overflow-hidden">
+    <main className="min-h-screen fluid-bg-translator relative overflow-hidden pt-24">
       {/* 背景装饰：左下角绿色鹅卵石 */}
       <svg
         className="fixed bottom-0 left-0 w-[200px] h-[200px] opacity-20 pointer-events-none z-0"
@@ -180,50 +181,10 @@ function TranslatorContent() {
           fill="#7D8C9F"
         />
       </svg>
-      {/* Header */}
-      <header className="fixed w-full z-50 px-8 py-6 flex items-center justify-between bg-white/60 backdrop-blur-xl border-b border-white/40">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#7D8C9F] rounded-[60%_40%_70%_30%/40%_50%_60%_40%]" />
-          <span className="text-2xl font-medium tracking-[0.2em] text-[#7D8C9F]">Pebble AI</span>
-        </div>
-
-        {/* 导航栏 */}
-        <nav aria-label="主导航" className="hidden md:flex items-center gap-1 bg-white/40 px-3 py-1.5 rounded-full border border-white/60">
-          <a href="/" className="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] hover:font-bold transition-all">首页</a>
-          <span className="px-7 py-3 rounded-full text-base font-bold tracking-widest text-[#2C3E50] bg-[#A8D8B9]/20 relative">
-            读心翻译
-            <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#A8D8B9] rounded-full animate-pulse" />
-          </span>
-          <a href="/dojo" className="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] hover:font-bold transition-all">模拟陪练</a>
-          <a href="/breathing" className="px-7 py-3 rounded-full text-base font-light tracking-widest text-[#7D8C9F] hover:bg-[#A8D8B9]/20 hover:text-[#2C3E50] hover:font-bold transition-all">急救呼吸</a>
-        </nav>
-
-        {/* 右侧图标区 */}
-        <div className="flex items-center gap-4">
-          {/* 通知按钮 */}
-          <button
-            type="button"
-            aria-label="通知"
-            className="relative p-2 rounded-full text-[#7D8C9F] hover:bg-white/50 transition-colors"
-          >
-            <span className="material-symbols-outlined text-2xl">notifications</span>
-            {/* 红点角标 */}
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-400 rounded-full border border-white" />
-          </button>
-
-          {/* 用户头像占位 */}
-          <button
-            type="button"
-            aria-label="用户菜单"
-            className="w-10 h-10 rounded-full bg-[#7D8C9F]/20 flex items-center justify-center text-[#7D8C9F] hover:ring-2 hover:ring-[#A8D8B9] transition-all overflow-hidden"
-          >
-            <span className="material-symbols-outlined">person</span>
-          </button>
-        </div>
-      </header>
+      <AppHeader activeHref="/translator" />
 
       {/* Main content: 三栏 Grid */}
-      <div className="max-w-7xl mx-auto w-full px-6 pt-32 pb-16 grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+      <div className="max-w-7xl mx-auto grid w-full grid-cols-1 items-start gap-8 px-6 pt-8 pb-16 md:grid-cols-12">
         {/* 左栏：输入区（5列） */}
         <div className="md:col-span-5 flex flex-col gap-4 mt-28">
           {/* 标题区：AI 大字 + 竖线分隔 + 读心翻译器 */}
