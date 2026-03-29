@@ -25,6 +25,7 @@ export type ApiResponse<T> =
 export interface DecodeRequest {
   text: string;
   context?: string;
+  relationId?: string;
 }
 
 export interface DecodeResponse {
@@ -213,3 +214,42 @@ export type PaginatedResponse<T> = {
   nextCursor?: string;
   hasMore: boolean;
 };
+
+// ==========================================
+// Relation API Types
+// ==========================================
+
+export interface RelationNode {
+  id: string;
+  userId: string;
+  name: string;
+  tags: string[];
+  relationshipType: string | null;
+  对方特点: string | null;
+  期望结果: string | null;
+  情境补充: string | null;
+  generatedContext: string | null;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RelationCreateRequest {
+  name: string;
+  tags?: string[];
+  relationshipType?: string;
+  对方特点?: string;
+  期望结果?: string;
+  情境补充?: string;
+}
+
+export interface RelationUpdateRequest {
+  name?: string;
+  tags?: string[];
+  relationshipType?: string;
+  对方特点?: string;
+  期望结果?: string;
+  情境补充?: string;
+  generatedContext?: string;
+  position?: number;
+}

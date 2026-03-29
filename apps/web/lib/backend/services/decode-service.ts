@@ -4,7 +4,9 @@
  */
 
 import { db } from '@/lib/db';
-import { analysisLogs } from '@/lib/db/schema';
+import { analysisLogs, relationNodes } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
+import { buildDecoderSystemWithContext } from '@/lib/llm/prompts';
 import { redactSensitiveText } from '../policy/pii';
 import { withTimeout } from '../policy/timeout';
 import { createBackendError } from '../errors';
@@ -14,6 +16,7 @@ import type { DecodeResponse, EmotionAnalysis, ReplyOption } from '@pebble/types
 interface AnalyzeOptions {
   text: string;
   context?: string;
+  relationId?: string;
   skipPII?: boolean;
 }
 
@@ -42,7 +45,7 @@ const scenarioToChinese: Record<string, string> = {
  * This is the main service function for decode endpoint
  */
 export async function analyzeText(options: AnalyzeOptions): Promise<DecodeResponse> {
-  const { text, context, skipPII = false } = options;
+  const { text, context, relationId, skipPII = false } = options;
 
   // Validate input
   if (!text || text.trim().length === 0) {
@@ -60,11 +63,13 @@ export async function analyzeText(options: AnalyzeOptions): Promise<DecodeRespon
   // Get or create guest session for tracking
   const guestSession = await getCurrentGuestSession();
   const guestSessionId = guestSession?.id ?? null;
+  const relationContext = relationId ? await buildRelationContext(relationId) : '';
+  const fullContext = [context, relationContext].filter(Boolean).join('\n\n');
 
   try {
     // Try LLM analysis with timeout
     const analysis = await withTimeout(
-      performLLMAnalysis(processedText, context),
+      performLLMAnalysis(processedText, fullContext),
       FALLBACK_TIMEOUT_MS,
       'LLM analysis timed out'
     );
@@ -106,7 +111,7 @@ export async function analyzeText(options: AnalyzeOptions): Promise<DecodeRespon
     console.error('LLM analysis failed, using fallback:', error);
 
     // Fallback to heuristic analysis
-    const fallbackAnalysis = performHeuristicAnalysis(processedText);
+    const fallbackAnalysis = performHeuristicAnalysis(processedText, fullContext);
 
     // Persist fallback analysis
     await persistAnalysisLog({
@@ -143,17 +148,48 @@ export async function analyzeText(options: AnalyzeOptions): Promise<DecodeRespon
   }
 }
 
+async function buildRelationContext(relationId: string): Promise<string> {
+  if (!db) return '';
+
+  try {
+    const [relation] = await db
+      .select()
+      .from(relationNodes)
+      .where(eq(relationNodes.id, relationId))
+      .limit(1);
+
+    if (!relation) return '';
+
+    const parts: string[] = [];
+    if (relation.name) parts.push(`- 姓名：${relation.name}`);
+    if (relation.relationshipType) parts.push(`- 关系类型：${relation.relationshipType}`);
+    if (relation.对方特点) parts.push(`- 对方特点：${relation.对方特点}`);
+    if (relation.期望结果) parts.push(`- 期望结果：${relation.期望结果}`);
+    if (relation.情境补充) parts.push(`- 情境补充：${relation.情境补充}`);
+    if (relation.generatedContext) parts.push(`- 系统生成画像：${relation.generatedContext}`);
+
+    return parts.join('\n');
+  } catch (error) {
+    console.error('Failed to build relation context:', error);
+    return '';
+  }
+}
+
 /**
  * Perform LLM-based analysis
  * Placeholder for actual LLM integration
  */
 async function performLLMAnalysis(
   text: string,
-  _context?: string
+  context?: string
 ): Promise<EmotionAnalysis> {
   // This would call the actual LLM service
   // For now, return a mock result to maintain compatibility
   // TODO: Integrate with actual LLM service
+
+  const hasContext = Boolean(context?.trim());
+  const systemPrompt = buildDecoderSystemWithContext(context ?? '');
+  void systemPrompt;
 
   const lowerText = text.toLowerCase();
 
@@ -187,7 +223,9 @@ async function performLLMAnalysis(
   return {
     attackType,
     scenario,
-    subtext: '对方试图通过情感操控来影响你的行为',
+    subtext: hasContext
+      ? '结合当前关系背景，对方试图通过情感操控来影响你的行为'
+      : '对方试图通过情感操控来影响你的行为',
     emotionScore,
     neutralityScore: 100 - emotionScore,
   };
@@ -196,7 +234,7 @@ async function performLLMAnalysis(
 /**
  * Heuristic analysis as fallback when LLM fails
  */
-function performHeuristicAnalysis(text: string): EmotionAnalysis {
+function performHeuristicAnalysis(text: string, context?: string): EmotionAnalysis {
   const lowerText = text.toLowerCase();
 
   // Keywords detection
@@ -257,7 +295,7 @@ function performHeuristicAnalysis(text: string): EmotionAnalysis {
   return {
     attackType,
     scenario,
-    subtext: generateSubtext(attackType, scenario),
+    subtext: generateSubtext(attackType, scenario, Boolean(context?.trim())),
     emotionScore: baseScore,
     neutralityScore: 100 - baseScore,
   };
@@ -266,7 +304,7 @@ function performHeuristicAnalysis(text: string): EmotionAnalysis {
 /**
  * Generate subtext based on attack type and scenario
  */
-function generateSubtext(attackType: string, _scenario: string): string {
+function generateSubtext(attackType: string, _scenario: string, hasContext = false): string {
   const subtexts: Record<string, string> = {
     guilt_trip: '对方感到失控，试图通过唤起愧疚感来重新获得控制权',
     moral_binding: '对方在用道德义务约束你，但真正的关心不需要 guilt',
@@ -276,7 +314,8 @@ function generateSubtext(attackType: string, _scenario: string): string {
     general: '这段对话中可能存在隐含的操控意图，值得留意',
   };
 
-  return subtexts[attackType] || subtexts.general;
+  const baseSubtext = subtexts[attackType] || subtexts.general;
+  return hasContext ? `结合当前关系背景，${baseSubtext}` : baseSubtext;
 }
 
 /**
@@ -335,8 +374,9 @@ async function persistAnalysisLog(params: {
   scenario: string;
   emotionScore: number;
   neutralityScore: number;
-}): Promise<void> {
+  }): Promise<void> {
   try {
+    if (!db) return;
     await db.insert(analysisLogs).values({
       guestSessionId: params.guestSessionId,
       attackType: params.attackType,

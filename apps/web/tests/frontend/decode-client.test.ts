@@ -23,7 +23,7 @@ describe('decode-client', () => {
       json: () => Promise.resolve(mockResponse),
     }));
 
-    const result = await decode('测试文本');
+    const result = await decode({ text: '测试文本' });
     expect(result).toEqual(mockResponse);
   });
 
@@ -34,15 +34,15 @@ describe('decode-client', () => {
       json: () => Promise.resolve({ error: '服务器错误' }),
     }));
 
-    await expect(decode('测试')).rejects.toThrow(DecodeError);
-    await expect(decode('测试')).rejects.toMatchObject({ code: 'HTTP_ERROR' });
+    await expect(decode({ text: '测试' })).rejects.toThrow(DecodeError);
+    await expect(decode({ text: '测试' })).rejects.toMatchObject({ code: 'HTTP_ERROR' });
   });
 
   it('网络错误时抛出 DecodeError(NETWORK_ERROR)', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('fetch failed')));
 
-    await expect(decode('测试')).rejects.toThrow(DecodeError);
-    await expect(decode('测试')).rejects.toMatchObject({ code: 'NETWORK_ERROR' });
+    await expect(decode({ text: '测试' })).rejects.toThrow(DecodeError);
+    await expect(decode({ text: '测试' })).rejects.toMatchObject({ code: 'NETWORK_ERROR' });
   });
 
   it('超时时抛出 DecodeError(TIMEOUT)', async () => {
@@ -53,9 +53,29 @@ describe('decode-client', () => {
       })
     ));
 
-    const decodePromise = decode('测试');
+    const decodePromise = decode({ text: '测试' });
     vi.advanceTimersByTime(16000);
     await expect(decodePromise).rejects.toMatchObject({ code: 'TIMEOUT' });
     vi.useRealTimers();
+  });
+
+  it('会把 relationId 一起提交给 decode API', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ surfaceMeaning: '', subtext: '', emotionStatus: '一般场景', emotionScore: 50, replySuggestions: { A: '', B: '', C: '', strategy: { A: '', B: '', C: '' } } }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await decode({ text: '测试文本', relationId: '550e8400-e29b-41d4-a716-446655440000' });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/decode',
+      expect.objectContaining({
+        body: JSON.stringify({
+          text: '测试文本',
+          relationId: '550e8400-e29b-41d4-a716-446655440000',
+        }),
+      })
+    );
   });
 });

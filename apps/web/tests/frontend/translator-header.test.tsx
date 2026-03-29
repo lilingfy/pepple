@@ -1,9 +1,22 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+  }),
+  usePathname: () => '/translator',
+}));
+
 // Mock store
 vi.mock('@/store/translator-store', () => ({
   useTranslatorStore: vi.fn(),
+}));
+
+vi.mock('@/store/user-center-store', () => ({
+  useUserCenterStore: () => ({
+    selectedRelation: null,
+  }),
 }));
 
 // Mock Toast
@@ -50,7 +63,7 @@ describe('TranslatorPage Header', () => {
 
   it('渲染用户头像占位', () => {
     render(<TranslatorPage />);
-    const userButton = screen.getByLabelText('用户菜单');
+    const userButton = screen.getByLabelText('用户中心');
     expect(userButton).toBeInTheDocument();
   });
 
@@ -61,9 +74,8 @@ describe('TranslatorPage Header', () => {
     const activeNav = screen.getByText('读心翻译');
     expect(activeNav).toBeInTheDocument();
 
-    // 检查是否有 pulse 动画元素（绿点指示器）
     const parent = activeNav.parentElement;
-    const pulseElements = parent?.querySelectorAll('.animate-ping');
+    const pulseElements = parent?.querySelectorAll('.animate-pulse');
     expect(pulseElements?.length).toBeGreaterThan(0);
   });
 

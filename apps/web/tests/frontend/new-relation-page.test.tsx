@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    back: vi.fn(),
     push: vi.fn(),
   }),
 }));
@@ -19,7 +18,7 @@ vi.mock('@/store/relation-store', () => ({
 }));
 
 import { useRelationStore } from '@/store/relation-store';
-import NewRelationPage from '@/app/(main)/relations/new/page';
+import NewRelationPage from '@/app/(main)/me/relations/new/page';
 
 const mockStore = useRelationStore as unknown as ReturnType<typeof vi.fn>;
 

@@ -72,12 +72,13 @@ export const Schemas = {
   decodeRequest: z.object({
     text: z.string().min(1).max(5000),
     context: z.string().max(1000).optional(),
+    relationId: z.string().uuid().optional(),
   }),
 
   practiceCreate: z.object({
     sourceType: z.enum(['decode', 'simulator']),
     primaryReply: z.string().min(1).max(2000),
-    content: z.record(z.unknown()),
+    content: z.record(z.string(), z.unknown()),
   }),
 
   practiceUpdate: z.object({

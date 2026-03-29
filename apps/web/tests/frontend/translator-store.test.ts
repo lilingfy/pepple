@@ -6,6 +6,14 @@ vi.mock('@/lib/frontend/decode-client', () => ({
   decode: vi.fn(),
 }));
 
+vi.mock('@/store/user-center-store', () => ({
+  useUserCenterStore: {
+    getState: vi.fn(() => ({
+      selectedRelationId: '550e8400-e29b-41d4-a716-446655440000',
+    })),
+  },
+}));
+
 import { decode } from '@/lib/frontend/decode-client';
 const mockDecode = decode as ReturnType<typeof vi.fn>;
 
@@ -50,6 +58,10 @@ describe('useTranslatorStore', () => {
 
     await act(async () => { await result.current.decode(); });
 
+    expect(mockDecode).toHaveBeenCalledWith({
+      text: '测试文本',
+      relationId: '550e8400-e29b-41d4-a716-446655440000',
+    });
     expect(result.current.status).toBe('result');
     expect(result.current.result).toEqual(mockResult);
     expect(result.current.error).toBeNull();

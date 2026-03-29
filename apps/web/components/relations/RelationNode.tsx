@@ -11,7 +11,6 @@ interface RelationNodeProps {
   isSelected: boolean;
 }
 
-// 关系类型对应的颜色
 const TAG_COLORS: Record<string, { bg: string; text: string; ring: string }> = {
   职场: { bg: 'bg-[#A8D8B9]/20', text: 'text-[#5A8A6A]', ring: 'ring-[#A8D8B9]' },
   NPD: { bg: 'bg-[#BCA564]/20', text: 'text-[#8A7340]', ring: 'ring-[#BCA564]' },
@@ -54,7 +53,6 @@ export function RelationNodeCard({ node, index, onClick, isSelected }: RelationN
         isSelected && 'ring-2 ring-[#A8D8B9] ring-offset-2'
       )}
     >
-      {/* 背景光晕效果 */}
       <div
         className={cn(
           'absolute inset-0 rounded-[inherit] opacity-0 transition-opacity duration-300',
@@ -63,10 +61,9 @@ export function RelationNodeCard({ node, index, onClick, isSelected }: RelationN
         )}
       />
 
-      {/* 节点内容 */}
       <div className="relative z-10 flex flex-col items-center gap-1">
         <span className={cn('text-sm font-semibold', colors.text)}>
-          {node.name.length > 4 ? node.name.slice(0, 4) + '...' : node.name}
+          {node.name.length > 4 ? `${node.name.slice(0, 4)}...` : node.name}
         </span>
         {node.tags.length > 0 && (
           <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full', colors.bg, colors.text)}>
@@ -75,7 +72,6 @@ export function RelationNodeCard({ node, index, onClick, isSelected }: RelationN
         )}
       </div>
 
-      {/* 呼吸动画指示器 */}
       {isSelected && (
         <div className="absolute -inset-1 rounded-[inherit] animate-pulse opacity-50 bg-[#A8D8B9]/20" />
       )}
