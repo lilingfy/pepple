@@ -64,13 +64,13 @@ export function BreathingPage() {
               0 0 50px rgba(168, 216, 185, 0.2),
               inset 0 0 30px rgba(255, 255, 255, 0.4);
           }
-          21% {
+          21.05% {
             transform: scale(1.35);
             box-shadow:
               0 0 100px rgba(168, 216, 185, 0.6),
               inset 0 0 60px rgba(255, 255, 255, 0.8);
           }
-          58% {
+          57.89% {
             transform: scale(1.35);
             box-shadow:
               0 0 100px rgba(168, 216, 185, 0.6),
@@ -86,16 +86,16 @@ export function BreathingPage() {
 
         @keyframes etherealStatusUpdate {
           0%,
-          20.9% {
+          21.05% {
             --status-text: "吸气";
             --status-color: #2c5545;
           }
-          21%,
-          57.9% {
+          21.06%,
+          57.89% {
             --status-text: "屏息";
             --status-color: #7d8c9f;
           }
-          58%,
+          57.9%,
           100% {
             --status-text: "呼气";
             --status-color: #4a6b5d;
@@ -104,14 +104,14 @@ export function BreathingPage() {
 
         @keyframes etherealInstructionUpdate {
           0%,
-          20.9% {
+          21.05% {
             --instruction-text: "DEEP INHALE (4S)";
           }
-          21%,
-          57.9% {
+          21.06%,
+          57.89% {
             --instruction-text: "HOLD GENTLY (7S)";
           }
-          58%,
+          57.9%,
           100% {
             --instruction-text: "SLOW EXHALE (8S)";
           }
@@ -144,7 +144,7 @@ export function BreathingPage() {
         }
 
         .animate-ethereal-breathing {
-          animation: etherealBreathing 19s ease-in-out infinite;
+          animation: etherealBreathing 19s linear infinite;
         }
 
         .status-sync-ethereal::after {
