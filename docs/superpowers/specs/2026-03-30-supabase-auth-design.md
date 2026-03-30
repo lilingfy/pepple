@@ -11,7 +11,7 @@ Replace placeholder auth with real Supabase Auth so Pebble has real login, real 
 - No legacy Clerk user mapping is implemented
 - Prior Clerk-linked identities are NOT preserved
 - Users must re-register with Supabase Auth
-- The `user_profiles.clerk_id` column has been renamed to `auth_user_id` for the new Supabase-based identities only
+- The `user_profiles` table uses `auth_user_id` column to map Supabase Auth users to local profiles
 
 This is an intentional product decision to start fresh with a clean auth system.
 
@@ -22,7 +22,7 @@ This is an intentional product decision to start fresh with a clean auth system.
 - Real email/password sign in and sign up
 - Real current-user resolution from Supabase session
 - Lazy local `user_profiles` creation
-- `user_profiles.clerkId` renamed to `authUserId`
+- `user_profiles` uses `authUserId` to map to Supabase Auth users
 - Relation APIs return `401 UNAUTHORIZED` when unauthenticated
 - Relation APIs return `503 SERVICE_UNAVAILABLE` when database is unavailable
 - Relation APIs return `500 INTERNAL_ERROR` when profile resolution fails
@@ -67,9 +67,9 @@ Business tables still reference `user_profiles.id`.
 
 ## Database
 
-`user_profiles.clerk_id` is renamed to `auth_user_id` via:
+The `user_profiles.auth_user_id` column maps Supabase Auth users to local profiles:
 
-- `apps/web/drizzle/migrations/0001_rename_clerk_id_to_auth_user_id.sql`
+- `apps/web/drizzle/migrations/0000_init.sql` creates `user_profiles` with `auth_user_id` column
 
 Profile creation is lazy:
 
