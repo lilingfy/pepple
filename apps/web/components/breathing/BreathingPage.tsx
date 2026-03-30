@@ -285,13 +285,13 @@ export function BreathingPage() {
       {/* Main Content */}
       <main
         className={cn(
-          "relative z-10 h-screen flex flex-col items-center px-4 justify-center pt-20",
+          "relative z-10 min-h-screen flex flex-col items-center px-4 pt-32 pb-40",
           (isPaused || isCompleted) && "paused",
         )}
       >
         {/* Module Title */}
-        <div className="text-center mb-12">
-          <p className="text-xs tracking-[0.3em] uppercase mb-4 opacity-60 font-medium">
+        <div className="text-center mb-8">
+          <p className="text-xs tracking-[0.3em] uppercase mb-3 opacity-60 font-medium">
             EMERGENCY BREATHING
           </p>
           <h1 className="font-serif text-5xl font-bold flex items-center justify-center space-x-5">
@@ -310,13 +310,13 @@ export function BreathingPage() {
               <path d="M12 0C12 6.627 17.373 12 24 12C17.373 12 12 17.373 12 24C12 17.373 6.627 12 0 12C6.627 12 12 6.627 12 0Z" />
             </svg>
           </h1>
-          <p className="mt-6 text-sm opacity-70 max-w-md mx-auto leading-relaxed">
+          <p className="mt-4 text-sm opacity-70 max-w-md mx-auto leading-relaxed">
             情绪淹没时，请点击下方，跟随光晕的律动找回平静。
           </p>
         </div>
 
         {/* Breathing Orb */}
-        <div className="relative flex items-center justify-center mb-6 w-full h-[400px]">
+        <div className="relative flex items-center justify-center mb-10 w-full h-[360px]">
           {/* Background glow */}
           <div className="absolute w-[450px] h-[450px] rounded-full bg-gradient-to-tr from-[#c8e6d3] to-[#e4f2e9] blur-[50px] opacity-50 pointer-events-none" />
 
@@ -359,7 +359,7 @@ export function BreathingPage() {
         </div>
 
         {/* Instruction text with mist effect */}
-        <div className="text-center mb-12 relative group z-50">
+        <div className="text-center mb-16 relative group z-50">
           <div className="absolute inset-0 mist-diffusion -z-10 scale-150" />
           <p className="font-serif font-light text-xl text-[#7D8C9F]/80 tracking-[0.4em] px-12 py-2">
             {isCompleted
@@ -371,7 +371,7 @@ export function BreathingPage() {
         </div>
 
         {/* Cooldown Inhibitor */}
-        <div className="flex flex-col items-center relative z-30">
+        <div className="flex flex-col items-center mt-auto relative z-30">
           <div
             className="rounded-[2rem] px-10 py-6 flex items-center space-x-10"
             style={{
