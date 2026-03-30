@@ -1,10 +1,8 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { updateSession } from "@/lib/supabase/middleware";
 
-export async function middleware(request: NextRequest) {
-  // Minimal middleware - just pass through
-  // TODO: Add Supabase session refresh when Supabase Auth is fully integrated
-  return NextResponse.next();
+export function middleware(request: NextRequest) {
+  return updateSession(request);
 }
 
 export const config = {

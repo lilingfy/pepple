@@ -15,12 +15,12 @@ import {
 } from 'drizzle-orm/pg-core';
 
 // ==========================================
-// User Profiles (extends Clerk user data)
+// User Profiles (extends Supabase Auth user data)
 // ==========================================
 
 export const userProfiles = pgTable('user_profiles', {
   id: uuid('id').primaryKey().defaultRandom(),
-  clerkId: varchar('clerk_id', { length: 255 }).unique().notNull(),
+  authUserId: varchar('auth_user_id', { length: 255 }).unique().notNull(),
   llmPreference: varchar('llm_preference', { length: 50 }).default('zhipu'),
   apiKeyEncrypted: text('api_key_encrypted'),
   createdAt: timestamp('created_at').defaultNow().notNull(),

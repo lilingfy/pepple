@@ -6,24 +6,16 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { relationService } from '@/lib/backend/services/relation-service';
-import { normalizeApiFailure, generateRequestId, toErrorResponse } from '@/lib/backend/errors';
+import { generateRequestId, toErrorResponse } from '@/lib/backend/errors';
 import { getCurrentRelationUserId } from './_lib/current-user';
+import { createResponseHelpers } from './_lib/route-helpers';
+import { isAuthError } from '@/lib/auth/errors';
 
 export async function GET(): Promise<NextResponse> {
-  const requestId = generateRequestId();
+  const helpers = createResponseHelpers(generateRequestId());
 
   try {
     const userId = await getCurrentRelationUserId();
-
-    if (!userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: toErrorResponse({ code: 'NOT_FOUND', message: '用户不存在', status: 404 }, requestId),
-        },
-        { status: 404 }
-      );
-    }
 
     const nodes = await relationService.list(userId);
 
@@ -33,33 +25,18 @@ export async function GET(): Promise<NextResponse> {
     });
   } catch (error) {
     console.error('Relations list error:', error);
-    const backendError = normalizeApiFailure(error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: toErrorResponse(backendError, requestId),
-      },
-      { status: backendError.status }
-    );
+    if (isAuthError(error)) {
+      return helpers.authError(error);
+    }
+    return helpers.error(error);
   }
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const requestId = generateRequestId();
+  const helpers = createResponseHelpers(generateRequestId());
 
   try {
     const userId = await getCurrentRelationUserId();
-
-    if (!userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: toErrorResponse({ code: 'NOT_FOUND', message: '用户不存在', status: 404 }, requestId),
-        },
-        { status: 404 }
-      );
-    }
 
     const body = await request.json();
 
@@ -67,7 +44,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json(
         {
           success: false,
-          error: toErrorResponse({ code: 'BAD_REQUEST', message: '关系名称不能为空', status: 400 }, requestId),
+          error: toErrorResponse({ code: 'BAD_REQUEST', message: '关系名称不能为空', status: 400 }, helpers.requestId),
         },
         { status: 400 }
       );
@@ -92,14 +69,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   } catch (error) {
     console.error('Relations create error:', error);
-    const backendError = normalizeApiFailure(error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: toErrorResponse(backendError, requestId),
-      },
-      { status: backendError.status }
-    );
+    if (isAuthError(error)) {
+      return helpers.authError(error);
+    }
+    return helpers.error(error);
   }
 }
