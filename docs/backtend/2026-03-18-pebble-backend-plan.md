@@ -6,14 +6,16 @@
 
 **Architecture:** Keep Next.js route handlers thin. Put business logic in focused service modules, data access in repositories, and cross-cutting concerns in small policy helpers. Use shared DTOs and runtime validation so API contracts are explicit. Store durable user-facing data in PostgreSQL, keep front-end IndexedDB as a cache only, and make all LLM calls degrade to deterministic local behavior when providers fail.
 
-**Tech Stack:** Next.js 15 Route Handlers, TypeScript 5 strict mode, Drizzle ORM, PostgreSQL/Neon, Clerk session binding, Zod validation, Vitest for backend unit tests, OpenAPI for contract documentation.
+**Tech Stack:** Next.js 15 Route Handlers, TypeScript 5 strict mode, Drizzle ORM, PostgreSQL/Neon, Supabase Auth session binding, Zod validation, Vitest for backend unit tests, OpenAPI for contract documentation.
 
 **Source of Truth Front-End:**
+
 - `/Users/xyh/Code/pebble/pebble_translator（(第二版）.html`
 - `/Users/xyh/Code/pebble/pebble_dojo(第二版）.html`
 - `/Users/xyh/Code/pebble/pebble_breathing（第二版）.html`
 
 **Non-Goals for This Plan:**
+
 - Do not change front-end source in this phase.
 - Do not add a separate backend service outside `apps/web`.
 - Do not add a breathing backend endpoint unless telemetry is explicitly required later.
@@ -23,6 +25,7 @@
 ## File Map
 
 ### Create
+
 - `docs/backtend/2026-03-18-pebble-backend-plan.md`
 - `docs/backtend/openapi.yaml`
 - `packages/types/src/backend.ts`
@@ -68,6 +71,7 @@
 - `apps/web/tests/setup.ts`
 
 ### Modify
+
 - `packages/types/src/index.ts`
 - `apps/web/lib/db/schema.ts`
 - `apps/web/lib/db/index.ts`
@@ -82,6 +86,7 @@
 - `pnpm-lock.yaml`
 
 ### Generate
+
 - `apps/web/drizzle/migrations/<generated>_backend.sql`
 
 ---
@@ -93,6 +98,7 @@ Vitest must exist before any red-green cycle can work. Set up the runner first, 
 ### Task 1: Add the backend test harness
 
 **Files:**
+
 - Create: `apps/web/vitest.config.ts`
 - Create: `apps/web/tests/setup.ts`
 - Modify: `apps/web/package.json`
@@ -105,6 +111,7 @@ Add `vitest` to `apps/web` devDependencies. Add a `test:backend` script that run
 - [ ] **Step 2: Install dependencies**
 
 Run:
+
 ```bash
 pnpm install
 ```
@@ -118,6 +125,7 @@ Create a Node-based Vitest config with a `tests/backend/**/*.test.ts` include pa
 - [ ] **Step 4: Verify the runner is available**
 
 Run:
+
 ```bash
 pnpm --filter @pebble/web vitest --version
 ```
@@ -136,6 +144,7 @@ git commit -m "chore(test): add backend test harness"
 ## Chunk 1: Freeze Contracts and Response Shapes
 
 The second-version HTMLs define the public UX. The backend contract must match those widgets directly:
+
 - Translator page needs surface meaning, subtext, emotion detection state, three reply suggestions, copy/save support, and an internal-only safety envelope.
 - Simulator page needs scenario metadata, seeded history, turn-by-turn replies, live score feedback, coaching tips, restart semantics, and end-of-session summaries.
 - Breathing page is self-contained and should not require a backend dependency.
@@ -143,6 +152,7 @@ The second-version HTMLs define the public UX. The backend contract must match t
 ### Task 1: Define shared backend DTOs
 
 **Files:**
+
 - Create: `packages/types/src/backend.ts`
 - Modify: `packages/types/src/index.ts`
 - Test: `apps/web/tests/backend/contracts.test.ts`
@@ -150,6 +160,7 @@ The second-version HTMLs define the public UX. The backend contract must match t
 - [ ] **Step 1: Write the failing test**
 
 Add tests that assert:
+
 - decode request rejects empty strings and overlong payloads.
 - decode response exposes `surfaceMeaning`, `subtext`, `emotionStatus`, `emotionScore`, and three ordered `replySuggestions` with `key` and `text`.
 - simulator request rejects unknown `scenarioId` values.
@@ -191,6 +202,7 @@ git commit -m "feat(contracts): add shared backend DTOs"
 ### Task 2: Add runtime validation and HTTP helpers
 
 **Files:**
+
 - Create: `apps/web/lib/backend/contracts.ts`
 - Create: `apps/web/lib/backend/errors.ts`
 - Create: `apps/web/lib/backend/http.ts`
@@ -199,6 +211,7 @@ git commit -m "feat(contracts): add shared backend DTOs"
 - [ ] **Step 1: Write the failing test**
 
 Add tests that assert:
+
 - invalid JSON is mapped to `400`.
 - validation errors become a stable machine-readable payload.
 - unexpected provider failures become `502` or `503` with no raw stack leak.
@@ -235,6 +248,7 @@ The product should persist user-visible data on the server while keeping sensiti
 ### Task 1: Add anonymous session identity
 
 **Files:**
+
 - Create: `apps/web/lib/backend/session.ts`
 - Create: `apps/web/tests/backend/session.test.ts`
 - Modify: `apps/web/middleware.ts`
@@ -242,6 +256,7 @@ The product should persist user-visible data on the server while keeping sensiti
 - [ ] **Step 1: Write the failing test**
 
 Add tests for:
+
 - cookie creation when no session cookie exists.
 - cookie reuse when the same request returns again.
 - secure attributes: `HttpOnly`, `SameSite=Lax`, `Path=/`, long-lived expiry.
@@ -254,7 +269,7 @@ Expected: helper and cookie parsing assertions fail until the module exists.
 
 - [ ] **Step 3: Write the minimal implementation**
 
-Generate a `guest_session_id` cookie for anonymous usage, expose helpers to read or create it, and keep Clerk binding optional. Do not force login for the current front-end.
+Generate a `guest_session_id` cookie for anonymous usage, expose helpers to read or create it, and keep Supabase Auth binding optional. Do not force login for the current front-end.
 
 - [ ] **Step 4: Run the test to verify it passes**
 
@@ -272,6 +287,7 @@ git commit -m "feat(backend): add anonymous session identity"
 ### Task 2: Expand the database schema for backend persistence
 
 **Files:**
+
 - Modify: `apps/web/lib/db/schema.ts`
 - Modify: `apps/web/lib/db/index.ts`
 - Generate: `apps/web/drizzle/migrations/<generated>_backend.sql`
@@ -289,6 +305,7 @@ Expected: insert and query helpers fail because the new tables do not exist yet.
 - [ ] **Step 3: Write the minimal implementation**
 
 Add or extend tables for:
+
 - `analysis_logs` metadata with session binding and result snapshot support.
 - `practice_entries` for saved translator replies and coach tips.
 - `simulation_sessions` with summary and status fields.
@@ -300,6 +317,7 @@ Prefer JSONB for structured snapshots that are read infrequently. Keep raw sensi
 - [ ] **Step 4: Generate and apply the migration**
 
 Run:
+
 ```bash
 pnpm --filter @pebble/web db:generate
 pnpm --filter @pebble/web db:migrate
@@ -317,6 +335,7 @@ git commit -m "feat(db): add backend persistence tables"
 ### Task 3: Build the analysis repository wrapper
 
 **Files:**
+
 - Create: `apps/web/lib/backend/repositories/analysis-repository.ts`
 - Test: `apps/web/tests/backend/analysis-repository.test.ts`
 
@@ -350,6 +369,7 @@ git commit -m "feat(backend): add analysis repository"
 ### Task 4: Build the practice repository wrapper
 
 **Files:**
+
 - Create: `apps/web/lib/backend/repositories/practice-repository.ts`
 - Test: `apps/web/tests/backend/practice-repository.test.ts`
 
@@ -383,6 +403,7 @@ git commit -m "feat(practice): add repository wrapper"
 ### Task 5: Build the simulation repository wrapper
 
 **Files:**
+
 - Create: `apps/web/lib/backend/repositories/simulation-repository.ts`
 - Test: `apps/web/tests/backend/simulation-repository.test.ts`
 
@@ -416,12 +437,13 @@ git commit -m "feat(simulator): add repository wrapper"
 ### Task 6: Build the session repository wrapper
 
 **Files:**
+
 - Create: `apps/web/lib/backend/repositories/session-repository.ts`
 - Test: `apps/web/tests/backend/session-repository.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
-Add tests that verify anonymous guest sessions are created once, reused when present, and can be bound to a Clerk user later.
+Add tests that verify anonymous guest sessions are created once, reused when present, and can be bound to a Supabase Auth user later.
 
 - [ ] **Step 2: Run the test to verify it fails**
 
@@ -455,6 +477,7 @@ The translator HTML uses one input box, one decode action, one emotional state d
 ### Task 1: Split decode into service, prompt, and rules modules
 
 **Files:**
+
 - Create: `apps/web/lib/backend/decode/decode-service.ts`
 - Create: `apps/web/lib/backend/decode/prompt.ts`
 - Create: `apps/web/lib/backend/decode/rules.ts`
@@ -468,6 +491,7 @@ The translator HTML uses one input box, one decode action, one emotional state d
 - [ ] **Step 1: Write the failing test**
 
 Add tests that assert:
+
 - PII redaction removes phone numbers, emails, and obvious names before provider calls.
 - local fallback returns deterministic JSON when the provider is unavailable.
 - provider JSON parsing rejects malformed content and falls back safely.
@@ -499,6 +523,7 @@ git commit -m "feat(decode): extract backend decode pipeline"
 ### Task 2: Refactor the decode route into a thin adapter
 
 **Files:**
+
 - Modify: `apps/web/app/api/decode/route.ts`
 - Modify: `apps/web/lib/backend/contracts.ts`
 - Modify: `apps/web/lib/backend/errors.ts`
@@ -507,6 +532,7 @@ git commit -m "feat(decode): extract backend decode pipeline"
 - [ ] **Step 1: Write the failing test**
 
 Add route tests that verify:
+
 - empty payloads return `400`.
 - invalid JSON returns `400`.
 - successful responses have the normalized v2 shape.
@@ -544,6 +570,7 @@ The dojo HTML is a three-column layout: scenario selector and guidance on the le
 ### Task 1: Create a typed scenario catalog
 
 **Files:**
+
 - Create: `apps/web/lib/backend/simulator/scenario-catalog.ts`
 - Modify: `apps/web/app/api/simulator/route.ts`
 - Create: `apps/web/app/api/scenarios/route.ts`
@@ -552,6 +579,7 @@ The dojo HTML is a three-column layout: scenario selector and guidance on the le
 - [ ] **Step 1: Write the failing test**
 
 Add tests that assert:
+
 - scenario IDs map to the exact three dojo categories shown in the HTML: `职场越界`, `亲密关系`, and `社交应对`.
 - each scenario includes `categoryId`, `title`, the psychology-context copy, goal line, tips, seeded history, and a stable `sortOrder`.
 - the scenario list is deterministic and sorted.
@@ -583,6 +611,7 @@ git commit -m "feat(simulator): add scenario catalog"
 ### Task 2: Build the simulator service
 
 **Files:**
+
 - Create: `apps/web/lib/backend/simulator/simulator-scorer.ts`
 - Create: `apps/web/lib/backend/simulator/simulator-responder.ts`
 - Create: `apps/web/lib/backend/simulator/simulator-summary.ts`
@@ -595,6 +624,7 @@ git commit -m "feat(simulator): add scenario catalog"
 - [ ] **Step 1: Write the failing test**
 
 Add tests that verify:
+
 - `startSession` returns `action: "start"`, a stable `sessionId`, the selected scenario, seeded history, `rightPanel.analysisScore`, `rightPanel.analysisLabel`, `rightPanel.analysisSummary`, `rightPanel.instantFeedback`, `rightPanel.attentionPoint`, and `nextAttack`.
 - `turnSession` appends the latest message, updates `rightPanel.analysisScore`, `rightPanel.analysisLabel`, `rightPanel.analysisSummary`, `rightPanel.instantFeedback`, and `rightPanel.attentionPoint`, and keeps `nextAttack` scenario-specific.
 - `restartSession` resets turn history while preserving the scenario and returns a new `sessionId` with refreshed `rightPanel` fields.
@@ -627,6 +657,7 @@ git commit -m "feat(simulator): add scoring service"
 ### Task 3: Refactor the simulator route and add end-of-session support
 
 **Files:**
+
 - Modify: `apps/web/app/api/simulator/route.ts`
 - Create: `apps/web/app/api/simulator/[sessionId]/end/route.ts`
 - Modify: `apps/web/lib/backend/errors.ts`
@@ -635,6 +666,7 @@ git commit -m "feat(simulator): add scoring service"
 - [ ] **Step 1: Write the failing test**
 
 Add route tests that verify:
+
 - `action: "start"` returns a session snapshot with seeded history and the explicit `rightPanel` fields: `analysisScore`, `analysisLabel`, `analysisSummary`, `instantFeedback`, and `attentionPoint`.
 - `action: "turn"` returns the updated snapshot with the latest turn appended and refreshed `rightPanel` fields.
 - `action: "restart"` returns a fresh session snapshot with a new `sessionId` and reset `rightPanel` fields.
@@ -673,6 +705,7 @@ The translator HTML has copy and save actions. The backend should expose a singl
 ### Task 1: Add the practice service and API
 
 **Files:**
+
 - Create: `apps/web/lib/backend/practice/practice-service.ts`
 - Create: `apps/web/app/api/practice/route.ts`
 - Create: `apps/web/app/api/practice/[practiceId]/route.ts`
@@ -681,6 +714,7 @@ The translator HTML has copy and save actions. The backend should expose a singl
 - [ ] **Step 1: Write the failing test**
 
 Add tests that verify:
+
 - `POST /api/practice` saves either a translator decode snapshot or a dojo session snapshot under the same `practice` name.
 - for decode saves, `primaryReply` defaults to the first reply suggestion and the full three-suggestion set is stored alongside the visible snapshot fields.
 - for dojo saves, `primaryReply` is the latest neutral reply or coach-approved reply chosen by the caller.
@@ -697,6 +731,7 @@ Expected: imports fail until the practice service exists.
 - [ ] **Step 3: Write the minimal implementation**
 
 Keep the practice API small and explicit. Store only the minimum useful snapshot:
+
 - `source` (`decode` or `simulator`)
 - `sourceId` (`analysisId` or `sessionId`)
 - `title`
@@ -732,6 +767,7 @@ git commit -m "feat(practice): add saved reply persistence"
 ### Task 2: Add lightweight practice filters for practice summaries
 
 **Files:**
+
 - Modify: `apps/web/lib/db/schema.ts`
 - Modify: `apps/web/lib/backend/repositories/practice-repository.ts`
 - Test: `apps/web/tests/backend/practice-repository.test.ts`
@@ -772,6 +808,7 @@ The product handles emotionally sensitive text. Safety and privacy belong in the
 ### Task 1: Add PII redaction and safety classification
 
 **Files:**
+
 - Create: `apps/web/lib/backend/pii.ts`
 - Modify: `apps/web/lib/backend/decode/rules.ts`
 - Modify: `apps/web/lib/backend/simulator/simulator-service.ts`
@@ -780,6 +817,7 @@ The product handles emotionally sensitive text. Safety and privacy belong in the
 - [ ] **Step 1: Write the failing test**
 
 Add tests that verify:
+
 - phone numbers, emails, and easy identifiers are redacted before logs or provider calls.
 - crisis-like content returns a safe response and does not proceed into normal analysis.
 
@@ -809,6 +847,7 @@ git commit -m "feat(safety): add redaction and crisis guards"
 ### Task 2: Add rate limiting and request timeouts
 
 **Files:**
+
 - Create: `apps/web/lib/backend/rate-limit.ts`
 - Create: `apps/web/lib/backend/timeouts.ts`
 - Modify: `apps/web/app/api/decode/route.ts`
@@ -851,6 +890,7 @@ The backend plan is not complete until it is testable and documented.
 ### Task 1: Write the OpenAPI contract and run final verification
 
 **Files:**
+
 - Create: `docs/backtend/openapi.yaml`
 - Modify: `docs/backtend/2026-03-18-pebble-backend-plan.md`
 - Modify: `package.json`
@@ -864,6 +904,7 @@ Cover `POST /api/decode`, `POST /api/simulator`, `POST /api/simulator/[sessionId
 - [ ] **Step 2: Run the test to verify it fails**
 
 Run:
+
 ```bash
 pnpm exec redocly lint docs/backtend/openapi.yaml
 pnpm --filter @pebble/web type-check
@@ -880,6 +921,7 @@ Document the public backend surface in OpenAPI, list the error responses, and co
 - [ ] **Step 4: Run the final verification**
 
 Run:
+
 ```bash
 pnpm exec redocly lint docs/backtend/openapi.yaml
 pnpm --filter @pebble/web type-check

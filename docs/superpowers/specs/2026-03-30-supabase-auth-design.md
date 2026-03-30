@@ -69,7 +69,7 @@ Business tables still reference `user_profiles.id`.
 
 The `user_profiles.auth_user_id` column maps Supabase Auth users to local profiles:
 
-- `apps/web/drizzle/migrations/0000_init.sql` creates `user_profiles` with `auth_user_id` column
+- `apps/web/drizzle/migrations/0000_clever_spirit.sql` creates `user_profiles` with `auth_user_id` column
 
 Profile creation is lazy:
 
