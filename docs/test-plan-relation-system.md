@@ -69,9 +69,10 @@ pnpm --filter @pebble/web dev
 #### 创建关系
 
 ```bash
+# 使用已登录用户的 cookie 进行测试
 curl -X POST http://localhost:3000/api/relations \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <CLERK_SESSION_TOKEN>" \
+  -b "sb-access-token=<SUPABASE_ACCESS_TOKEN>; sb-refresh-token=<SUPABASE_REFRESH_TOKEN>" \
   -d '{
     "name": "我的老板",
     "tags": ["职场", "NPD"],
@@ -80,6 +81,8 @@ curl -X POST http://localhost:3000/api/relations \
     "期望结果": "减少冲突，建立平等对话"
   }'
 ```
+
+**注意**：Supabase Auth 使用 cookie-based SSR 认证，通过 `supabase.auth.getUser()` 自动解析用户。测试时需携带有效的 Supabase session cookies。
 
 **预期响应** (201):
 
@@ -98,8 +101,9 @@ curl -X POST http://localhost:3000/api/relations \
 #### 列出关系
 
 ```bash
+# 使用 cookie 认证
 curl http://localhost:3000/api/relations \
-  -H "Authorization: Bearer <CLERK_SESSION_TOKEN>"
+  -b "sb-access-token=<SUPABASE_ACCESS_TOKEN>; sb-refresh-token=<SUPABASE_REFRESH_TOKEN>"
 ```
 
 **预期**：返回用户所有关系节点，按 position 排序
@@ -108,7 +112,7 @@ curl http://localhost:3000/api/relations \
 
 ```bash
 curl http://localhost:3000/api/relations/<id> \
-  -H "Authorization: Bearer <CLERK_SESSION_TOKEN>"
+  -b "sb-access-token=<SUPABASE_ACCESS_TOKEN>; sb-refresh-token=<SUPABASE_REFRESH_TOKEN>"
 ```
 
 #### 更新关系
@@ -116,7 +120,7 @@ curl http://localhost:3000/api/relations/<id> \
 ```bash
 curl -X PATCH http://localhost:3000/api/relations/<id> \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <CLERK_SESSION_TOKEN>" \
+  -b "sb-access-token=<SUPABASE_ACCESS_TOKEN>; sb-refresh-token=<SUPABASE_REFRESH_TOKEN>" \
   -d '{"name": "我的前老板"}'
 ```
 
@@ -124,7 +128,7 @@ curl -X PATCH http://localhost:3000/api/relations/<id> \
 
 ```bash
 curl -X DELETE http://localhost:3000/api/relations/<id> \
-  -H "Authorization: Bearer <CLERK_SESSION_TOKEN>"
+  -b "sb-access-token=<SUPABASE_ACCESS_TOKEN>; sb-refresh-token=<SUPABASE_REFRESH_TOKEN>"
 ```
 
 **预期**：204 No Content
@@ -133,7 +137,7 @@ curl -X DELETE http://localhost:3000/api/relations/<id> \
 
 ```bash
 curl -X POST http://localhost:3000/api/relations/<id>/regenerate \
-  -H "Authorization: Bearer <CLERK_SESSION_TOKEN>"
+  -b "sb-access-token=<SUPABASE_ACCESS_TOKEN>; sb-refresh-token=<SUPABASE_REFRESH_TOKEN>"
 ```
 
 ### 2.3 错误场景测试
@@ -153,7 +157,7 @@ curl -X POST http://localhost:3000/api/relations/<id>/regenerate \
 ```bash
 curl -X POST http://localhost:3000/api/relations/<id>/chat \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <CLERK_SESSION_TOKEN>" \
+  -b "sb-access-token=<SUPABASE_ACCESS_TOKEN>; sb-refresh-token=<SUPABASE_REFRESH_TOKEN>" \
   -d '{
     "messages": [
       {"role": "user", "content": "我和老板吵架了，很难过"}
@@ -405,20 +409,27 @@ time curl -s -o /dev/null -w "%{http_code} %{time_total}s" \
 ```bash
 # apps/web/.env.local
 DATABASE_URL=postgresql://user:pass@localhost:5432/pebble
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJ...
 ```
 
 ### 7.2 测试用户
 
 1. 在 Supabase Dashboard 创建测试用户
-2. 登录测试账号
-3. 获取 session token 用于 API 测试
+2. 登录测试账号（通过 Web 应用或 Supabase Auth API）
+3. 系统通过 `supabase.auth.getUser()` 自动解析当前用户，无需手动处理 token
+
+**API 测试说明**：
+
+- 生产环境使用 cookie-based SSR 认证
+- 测试时可通过浏览器开发者工具获取 `sb-access-token` 和 `sb-refresh-token` cookies
+- 或使用 Supabase Auth API 直接获取 session 后携带 cookies 进行测试
 
 ### 7.3 测试数据清理
 
 ```bash
-# 测试后清理
+# 测试后清理（携带 Supabase session cookies）
 curl -X DELETE http://localhost:3000/api/relations/<test-id> \
-  -H "Authorization: Bearer <TOKEN>"
+  -b "sb-access-token=<SUPABASE_ACCESS_TOKEN>; sb-refresh-token=<SUPABASE_REFRESH_TOKEN>"
 ```
