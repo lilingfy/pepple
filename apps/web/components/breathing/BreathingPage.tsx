@@ -359,7 +359,7 @@ export function BreathingPage() {
         </div>
 
         {/* Instruction text with mist effect */}
-        <div className="text-center mb-8 relative group">
+        <div className="text-center mb-12 relative group z-50">
           <div className="absolute inset-0 mist-diffusion -z-10 scale-150" />
           <p className="font-serif font-light text-xl text-[#7D8C9F]/80 tracking-[0.4em] px-12 py-2">
             {isCompleted
@@ -371,7 +371,7 @@ export function BreathingPage() {
         </div>
 
         {/* Cooldown Inhibitor */}
-        <div className="flex flex-col items-center -mt-4 relative z-40">
+        <div className="flex flex-col items-center relative z-30">
           <div
             className="rounded-[2rem] px-10 py-6 flex items-center space-x-10"
             style={{
