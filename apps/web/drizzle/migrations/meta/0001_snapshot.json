@@ -71,12 +71,8 @@
           "name": "analysis_logs_user_id_user_profiles_id_fk",
           "tableFrom": "analysis_logs",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -84,12 +80,8 @@
           "name": "analysis_logs_guest_session_id_guest_sessions_id_fk",
           "tableFrom": "analysis_logs",
           "tableTo": "guest_sessions",
-          "columnsFrom": [
-            "guest_session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["guest_session_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -143,12 +135,8 @@
           "name": "guest_sessions_user_id_user_profiles_id_fk",
           "tableFrom": "guest_sessions",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -158,9 +146,7 @@
         "guest_sessions_session_token_unique": {
           "name": "guest_sessions_session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "session_token"
-          ]
+          "columns": ["session_token"]
         }
       },
       "policies": {},
@@ -219,12 +205,8 @@
           "name": "panic_sessions_user_id_user_profiles_id_fk",
           "tableFrom": "panic_sessions",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -311,12 +293,8 @@
           "name": "practice_entries_guest_session_id_guest_sessions_id_fk",
           "tableFrom": "practice_entries",
           "tableTo": "guest_sessions",
-          "columnsFrom": [
-            "guest_session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["guest_session_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -324,12 +302,8 @@
           "name": "practice_entries_user_id_user_profiles_id_fk",
           "tableFrom": "practice_entries",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -427,12 +401,8 @@
           "name": "relation_nodes_user_id_user_profiles_id_fk",
           "tableFrom": "relation_nodes",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -512,12 +482,8 @@
           "name": "simulation_sessions_user_id_user_profiles_id_fk",
           "tableFrom": "simulation_sessions",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -584,12 +550,8 @@
           "name": "simulation_turns_session_id_simulation_sessions_id_fk",
           "tableFrom": "simulation_turns",
           "tableTo": "simulation_sessions",
-          "columnsFrom": [
-            "session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["session_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -664,12 +626,8 @@
           "name": "user_activity_stats_user_id_user_profiles_id_fk",
           "tableFrom": "user_activity_stats",
           "tableTo": "user_profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -691,8 +649,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "clerk_id": {
-          "name": "clerk_id",
+        "auth_user_id": {
+          "name": "auth_user_id",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
@@ -729,12 +687,10 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "user_profiles_clerk_id_unique": {
-          "name": "user_profiles_clerk_id_unique",
+        "user_profiles_auth_user_id_unique": {
+          "name": "user_profiles_auth_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "clerk_id"
-          ]
+          "columns": ["auth_user_id"]
         }
       },
       "policies": {},
