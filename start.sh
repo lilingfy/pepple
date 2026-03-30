@@ -21,6 +21,9 @@ WEB_DIR="$PROJECT_ROOT/apps/web"
 SUPABASE_PORT=54321
 NEXTJS_PORT=3020
 
+# 启动后是否自动进入日志模式
+FOLLOW_LOGS=${FOLLOW_LOGS:-true}
+
 # 日志函数
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
@@ -124,6 +127,16 @@ health_check() {
     fi
 }
 
+# 进入 Next.js 日志模式
+follow_nextjs_logs() {
+    if [ "$FOLLOW_LOGS" != "true" ]; then
+        return 0
+    fi
+
+    log_info "进入 Next.js 日志模式（Ctrl+C 退出）"
+    tail -n 20 -f /tmp/pebble-nextjs.log
+}
+
 # 主流程
 main() {
     log_info "========== Pebble 项目启动 =========="
@@ -182,9 +195,12 @@ main() {
     log_info ""
     log_info "使用 ./stop.sh 停止所有服务"
     log_info "使用 ./restart.sh 重启服务"
+
+    # 可选：自动进入日志模式
+    follow_nextjs_logs
 }
 
 # 捕获中断信号
-trap 'log_warn "收到中断信号，正在停止..."; exit 1' INT TERM
+trap 'log_warn "收到中断信号，退出日志模式..."; exit 1' INT TERM
 
 main "$@"
