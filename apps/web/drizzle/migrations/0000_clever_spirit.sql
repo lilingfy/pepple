@@ -76,12 +76,12 @@ CREATE TABLE "user_activity_stats" (
 --> statement-breakpoint
 CREATE TABLE "user_profiles" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"clerk_id" varchar(255) NOT NULL,
+	"auth_user_id" varchar(255) NOT NULL,
 	"llm_preference" varchar(50) DEFAULT 'zhipu',
 	"api_key_encrypted" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "user_profiles_clerk_id_unique" UNIQUE("clerk_id")
+	CONSTRAINT "user_profiles_auth_user_id_unique" UNIQUE("auth_user_id")
 );
 --> statement-breakpoint
 ALTER TABLE "analysis_logs" ADD CONSTRAINT "analysis_logs_user_id_user_profiles_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user_profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
