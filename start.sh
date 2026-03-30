@@ -19,7 +19,7 @@ WEB_DIR="$PROJECT_ROOT/apps/web"
 
 # 端口配置
 SUPABASE_PORT=54321
-NEXTJS_PORT=3000
+NEXTJS_PORT=3020
 
 # 日志函数
 log_info() {

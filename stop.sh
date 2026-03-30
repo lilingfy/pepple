@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 
 # 端口配置
 SUPABASE_PORT=54321
-NEXTJS_PORT=3000
+NEXTJS_PORT=3020
 
 # 日志函数
 log_info() {

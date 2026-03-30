@@ -108,7 +108,7 @@ main() {
     if [ "$SKIP_SUPABASE" = true ]; then
         log_info "跳过 Supabase，只停止 Next.js..."
         # 只停止 Next.js
-        pid=$(lsof -Pi :3000 -sTCP:LISTEN -t 2>/dev/null || true)
+        pid=$(lsof -Pi :3020 -sTCP:LISTEN -t 2>/dev/null || true)
         if [ -n "$pid" ]; then
             kill "$pid" 2>/dev/null || true
             sleep 1
