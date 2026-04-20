@@ -1,0 +1,19 @@
+\begin{tikzpicture}[
+  node distance=1.7cm and 1.2cm,
+  every node/.style={font=\small}
+]
+  \node[reportprocess] (decode) {对话解码\\识别潜台词与风险};
+  \node[reportprocess, right=of decode] (practice) {关系陪练\\形成回应策略};
+  \node[reportprocess, below=of practice] (archive) {关系档案\\沉淀长期上下文};
+  \node[reportprocess, left=of archive] (breathing) {呼吸稳态\\降低情绪失真};
+  \node[reportdecision, above right=0.85cm and 1.8cm of decode] (context) {关系上下文\\驱动全局解释};
+
+  \draw[reportarrow] (decode) -- (practice);
+  \draw[reportarrow] (practice) -- (archive);
+  \draw[reportarrow] (archive) -- (breathing);
+  \draw[reportarrow] (breathing) -- (decode);
+  \draw[reportarrow] (context) -- ($(decode)!0.5!(practice)$);
+  \draw[reportarrow] (context) -- ($(practice)!0.5!(archive)$);
+  \draw[reportarrow] (context) -- ($(archive)!0.5!(breathing)$);
+  \draw[reportarrow] (context) -- ($(breathing)!0.5!(decode)$);
+\end{tikzpicture}

@@ -1,0 +1,24 @@
+title: "Pebble AI 项目架构与产品设计报告"
+subtitle: "hybrid report"
+author: "Codex"
+date: "2026-04-20"
+lang: "zh-CN"
+documentclass: ctexrep
+classoption:
+  - UTF8
+fontsize: 11pt
+geometry:
+  - a4paper
+  - left=25mm
+  - right=25mm
+  - top=24mm
+  - bottom=26mm
+  - headheight=16pt
+  - headsep=8mm
+  - includeheadfoot
+toc: true
+toc-depth: 2
+numbersections: true
+colorlinks: true
+linkcolor: blue
+urlcolor: blue

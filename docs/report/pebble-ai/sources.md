@@ -1,0 +1,22 @@
+# 资料来源
+
+- 在这里记录网页、论文、项目页面、访谈记录，以及每个关键判断背后的证据来源。
+- `/Users/xyh/Code/pebble/docs/taskbook/00-任务书总览.md`
+- `/Users/xyh/Code/pebble/docs/taskbook/01-项目概述与索引.md`
+- `/Users/xyh/Code/pebble/docs/taskbook/02-技术架构设计.md`
+- `/Users/xyh/Code/pebble/docs/taskbook/03-验收测试方案.md`
+- `/Users/xyh/Code/pebble/docs/test-plan-relation-system.md`
+- `/Users/xyh/Code/pebble/docs/superpowers/specs/2026-03-27-relation-insight-loop-design.md`
+- `/Users/xyh/Code/pebble/docs/superpowers/specs/2026-03-28-user-center-relation-integration-design.md`
+- `/Users/xyh/Code/pebble/docs/superpowers/specs/2026-03-30-supabase-auth-design.md`
+- `/Users/xyh/Code/pebble/docs/taskbook/TB-002-读心翻译器技术预研.md`
+- `/Users/xyh/Code/pebble/docs/taskbook/TB-003-模拟陪练场技术预研.md`
+- `/Users/xyh/Code/pebble/docs/taskbook/TB-004-急救呼吸技术预研.md`
+- `/Users/xyh/Code/pebble/apps/web/app/(main)/dashboard/page.tsx`
+- `/Users/xyh/Code/pebble/apps/web/app/(main)/translator/page.tsx`
+- `/Users/xyh/Code/pebble/apps/web/app/(main)/dojo/page.tsx`
+- `/Users/xyh/Code/pebble/apps/web/app/(main)/me/page.tsx`
+- `/Users/xyh/Code/pebble/apps/web/app/api/decode/route.ts`
+- `/Users/xyh/Code/pebble/apps/web/app/api/practice/route.ts`
+- `/Users/xyh/Code/pebble/apps/web/app/api/relations/route.ts`
+- `/Users/xyh/Code/pebble/apps/web/app/api/simulator/route.ts`

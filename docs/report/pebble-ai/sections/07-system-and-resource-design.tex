@@ -1,0 +1,110 @@
+\chapter{系统、数据与资源设计}
+
+\section{本章作用}
+
+前两章已经分别说明了执行路径与方法结构，本章进一步回答一个工程层面的问题：这些路径和方法由哪些系统层次、数据对象与运行资源共同支撑。这里讨论的重点不在于页面外观，也不在于单个接口的局部逻辑，而在于 Pebble 如何把前端状态、前端请求适配、API 路由、服务层、仓储层与数据库连接组织成一个可维护的整体。
+
+这一章尤其需要明确系统边界。Pebble 当前既包含明显的交互层，也包含关系档案、练习沉淀、会话记录与匿名访客支持等数据层能力。如果不把这些层次区分开，系统很容易被误读为“只有几个页面 + 几个接口”的轻量前端项目；而从当前结构看，它已经具备一个小型全栈支持系统的基本骨架。
+
+\section{系统分层与边界}
+
+Pebble 当前可以被理解为一个六层结构。图~\ref{fig:pebble-system-layers} 对这一结构做了压缩描述。
+
+\begin{figure}[H]
+  \centering
+  \input{figures/pebble-system-layers.tex}
+  \caption{Pebble 当前系统分层：从页面交互到底层数据与会话资源，形成清晰的责任链。}
+  \label{fig:pebble-system-layers}
+\end{figure}
+
+该分层的意义在于，每一层都承担了相对清晰的责任。
+
+\begin{itemize}
+  \item 交互层负责把产品能力组织成可感知页面，例如首页入口、翻译页、陪练场、呼吸页与个人中心。
+  \item 状态层负责维护界面会话中的局部状态，例如翻译结果、陪练消息流与当前选中关系对象。
+  \item 前端调用层负责把页面动作转换为统一的 HTTP 请求，并把接口响应映射回前端所需的数据形状。
+  \item 接口层负责承接请求、做参数校验与限流，并把业务调用包装成稳定的 API 响应。
+  \item 业务层负责形成真正的领域逻辑，例如关系上下文拼接、模拟场景推进、练习本写入与关系对象生成上下文。
+  \item 数据与资源层负责持久化、查询、匿名会话与登录用户映射，为上层逻辑提供稳定底座。
+\end{itemize}
+
+\section{核心模块划分}
+
+若把上述分层进一步压缩为面向报告阅读的模块视角，Pebble 当前至少包含四个核心模块。
+
+\begin{table}[H]
+  \centering
+  \caption{Pebble 的核心模块及其对应的系统职责。}
+  \label{tab:pebble-system-modules}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    模块 & 主要职责 & 典型系统位置 \\
+    \midrule
+    解码模块 & 接收文本与关系上下文，返回潜台词、情绪状态与回应建议 & 翻译页、客户端解码状态、分析接口与文本分析逻辑 \\
+    陪练模块 & 维护场景、会话与轮次消息，持续返回即时反馈与下一轮回复 & 陪练页面、回合状态、会话接口与场景推进逻辑 \\
+    关系模块 & 维护关系档案、生成上下文与当前关系选择，并为其他模块提供解释条件 & 个人中心、关系选择状态、关系接口与关系对象维护逻辑 \\
+    练习沉淀模块 & 把解码或陪练结果固化为可收藏、可归档、可回看的练习材料 & 练习材料接口、沉淀逻辑与长期保存对象 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+这四个模块之间并非松散并列关系。关系模块为解码模块提供条件，解码模块与陪练模块为练习沉淀模块提供来源，陪练模块和呼吸模块又共同承担“用户在压力情境中的支持链”不同阶段的职责。因此，Pebble 当前的结构应被理解为共享底层数据与状态语境的一组协同模块。
+
+\section{数据对象与持久化组织}
+
+从数据层看，Pebble 已经形成围绕用户、会话、关系与练习展开的多种持久化对象。
+
+\begin{itemize}
+  \item \texttt{user\_profiles} 用于承接登录用户的本地画像与模型偏好。
+  \item \texttt{guest\_sessions} 用于支撑匿名用户的 cookie 会话，使未登录用户也能进入部分支持链路。
+  \item \texttt{relation\_nodes} 用于存放关系档案，是关系上下文与长期洞察的核心承载对象。
+  \item \texttt{analysis\_logs} 用于记录分析元数据，为后续统计与复盘提供基础。
+  \item \texttt{simulation\_sessions} 与 \texttt{simulation\_turns} 共同维护陪练会话及其轮次消息。
+  \item \texttt{practice\_entries} 用于收敛来自解码与陪练的练习材料，形成跨路径沉淀。
+  \item \texttt{panic\_sessions} 与 \texttt{user\_activity\_stats} 用于记录稳态恢复和用户日常活跃信息。
+\end{itemize}
+
+这些对象可以进一步分成三组。
+
+\begin{itemize}
+  \item 用户与身份组：\texttt{user\_profiles}、\texttt{guest\_sessions}。
+  \item 互动过程组：\texttt{analysis\_logs}、\texttt{simulation\_sessions}、\texttt{simulation\_turns}、\texttt{panic\_sessions}。
+  \item 长期记忆组：\texttt{relation\_nodes}、\texttt{practice\_entries}、\texttt{user\_activity\_stats}。
+\end{itemize}
+
+这种分组方式与前文的方法结构是一致的。互动过程组承载“当前输入与当前会话”，长期记忆组承载“练习记录与关系对象”，身份组则决定这些对象由匿名用户还是登录用户持有。
+
+\section{匿名会话与登录用户的双轨支撑}
+
+Pebble 当前的一个重要系统特征，是同时支持匿名访客与登录用户两种路径。匿名访客主要通过 guest session 进入解码、陪练与练习沉淀路径；关系档案相关能力则更多依赖登录用户及其本地用户画像。
+
+这一双轨结构的工程含义在于，系统没有把所有功能都强制绑定到登录门槛上，而是采用了更细粒度的能力划分。
+
+\begin{itemize}
+  \item 匿名路径通过 cookie 中的 guest session token 建立最小身份，使访客也能获得限流、记录与部分持久化能力。
+  \item 登录路径通过 Supabase 用户解析到 \texttt{user\_profiles}，再把业务数据绑定到本地用户标识，而非直接把认证用户 ID 散落到全部业务逻辑中。
+  \item 关系模块采用显式鉴权策略。若数据库不可用、用户未登录或本地画像解析失败，系统会在接口层以区分明确的错误类型返回，而不是把所有失败都混成统一异常。
+\end{itemize}
+
+这一设计提升了系统的可迁移性与边界清晰度。匿名访客可以先体验核心功能，登录用户则可以逐步进入关系档案与长期个性化路径，两者在数据层又通过明确的 \texttt{guestSessionId} 与 \texttt{userId} 关联保持可区分性。
+
+\section{资源与退化策略}
+
+系统设计不仅要说明“正常情况下如何工作”，还要说明关键资源缺失时如何退化。Pebble 当前已经可以观察到至少三类资源边界。
+
+\begin{itemize}
+  \item 数据库资源：若 \texttt{DATABASE\_URL} 不可用，数据库连接会退化为不可用状态，部分服务则转入降级模式。
+  \item 会话资源：若用户没有匿名会话 token，则系统在需要时创建新的 guest session，保证匿名路径仍可运行。
+  \item 模型与分析资源：解码服务在分析超时或失败时会退回启发式分析，陪练模块在数据库不可用时也具备内存回退路径。
+\end{itemize}
+
+这些退化策略具有两层价值。
+
+\begin{itemize}
+  \item 它们提高了系统在开发与轻量部署环境中的可运行性。
+  \item 它们为后续章节中的“项目进度”与“风险边界”提供了更清晰的分类依据，使读者能够区分哪些能力依赖完整后端资源，哪些能力在资源不完整时仍能以弱化方式继续工作。
+\end{itemize}
+
+\section{本章小结}
+
+第八章说明了 Pebble 当前的系统骨架已经具备明确的层次划分、模块边界和数据承载方式。前端页面、客户端状态、请求适配、API 接口、业务服务、仓储与数据库共同围绕关系对象、练习沉淀和会话支持链组织成一个可扩展的小型全栈系统。下一章将在此基础上继续进入示例、结果与验证，讨论这些结构如何在实际交互中体现为可观察行为与可验证结果。
