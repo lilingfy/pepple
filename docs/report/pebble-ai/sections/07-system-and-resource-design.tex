@@ -28,9 +28,48 @@ Pebble 当前可以被理解为一个六层结构。图~\ref{fig:pebble-system-l
   \item 数据与资源层负责持久化、查询、匿名会话与登录用户映射，为上层逻辑提供稳定底座。
 \end{itemize}
 
+\section{前端状态设计}
+
+\reportadd{
+Pebble 的前端状态层采用 Zustand 管理，当前包含四个主要 store，分别对应翻译、陪练、关系与用户中心四个功能域。它们并非彼此隔离，而是通过显式的跨 store 调用来实现状态同步。表~\ref{tab:pebble-stores} 对这四个 store 的状态字段与职责做了汇总。
+
+\begin{table}[H]
+  \centering
+  \caption{Pebble 前端 Zustand store 结构。}
+  \label{tab:pebble-stores}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    Store & 状态字段 & 职责 \\
+    \midrule
+    useTranslatorStore & inputText, status, result, error & 管理翻译页的输入、解码状态与结果展示 \\
+    useDojoStore & currentScenario, messages, rightPanel, sessionId, sessionStatus & 管理陪练场的场景、消息流、会话状态与右侧面板反馈 \\
+    useRelationStore & nodes, selectedNodeId, isLoading, error & 管理关系对象的增删改查与选中状态 \\
+    useUserCenterStore & selectedRelationId, selectedRelation & 管理全局当前关系选择，通过 persist 中间件持久化到 localStorage \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+四个 store 之间的通信关系如下：
+
+\begin{itemize}
+  \item useTranslatorStore 在调用 decode 时，通过 \texttt{useUserCenterStore.getState()} 读取当前选中的关系标识，将其附加到请求中。这说明翻译模块对全局关系状态的依赖是显式的运行时调用，而非通过 React Context 或 props 传递。
+  \item useUserCenterStore 使用 Zustand 的 persist 中间件，只持久化 \texttt{selectedRelationId} 到 localStorage。页面刷新后，store 会恢复该 ID，并在需要时通过 \texttt{loadSelectedRelation} 重新拉取关系详情。
+  \item useDojoStore 与 useRelationStore 之间没有直接依赖，它们各自通过前端 client 层与后端通信，但共享同一套 guest session 身份机制。
+\end{itemize}
+
+状态层的设计决策有以下两点：
+
+\begin{itemize}
+  \item 每个 store 只负责一个功能域的状态，避免了单个大 store 带来的频繁重渲染问题。
+  \item 跨 store 通信采用显式的 \texttt{getState()} 调用，而不是通过订阅或事件总线，这使得数据流更易追踪，但也意味着 store 之间存在编译时不可见的隐式依赖。
+\end{itemize}
+}
+
 \section{核心模块划分}
 
 若把上述分层进一步压缩为面向报告阅读的模块视角，Pebble 当前至少包含四个核心模块。
+
+表~\ref{tab:pebble-system-modules} 对四个核心模块做了汇总。
 
 \begin{table}[H]
   \centering
@@ -49,6 +88,100 @@ Pebble 当前可以被理解为一个六层结构。图~\ref{fig:pebble-system-l
 \end{table}
 
 这四个模块之间并非松散并列关系。关系模块为解码模块提供条件，解码模块与陪练模块为练习沉淀模块提供来源，陪练模块和呼吸模块又共同承担“用户在压力情境中的支持链”不同阶段的职责。因此，Pebble 当前的结构应被理解为共享底层数据与状态语境的一组协同模块。
+
+\section{模块依赖与接口契约}
+
+\reportadd{
+若只从模块职责表理解系统，仍难以判断模块之间如何协作。本节进一步说明核心模块的依赖关系与服务层暴露的接口契约。
+
+\subsection{模块依赖关系}
+
+从代码库的导入关系可以画出以下依赖图：
+
+\begin{itemize}
+  \item 解码模块：translator-store → decode-client → DecodeService → RelationService / relation-repository。这说明翻译路径在发起分析时，需要关系模块提供上下文拼接能力。
+  \item 陪练模块：dojo-store → simulator-client → SimulatorService → simulator-repository。陪练模块相对独立，不直接依赖关系模块，但依赖同一套 guest session 基础设施。
+  \item 关系模块：relation-store → relation-client → RelationService → relation-repository。关系模块是基础服务层，被解码模块调用。
+  \item 练习沉淀模块：translator-store / dojo-store → practice-client → PracticeService → practice-repository。练习沉淀是跨模块的收敛点，接收来自解码和陪练两路的保存请求。
+\end{itemize}
+
+\subsection{业务层服务接口}
+
+业务层以 TypeScript class 形式实现，每个服务类暴露一组类型化的公共方法。以下列出核心方法签名及其约束，见表~\ref{tab:decode-service-contract}、表~\ref{tab:simulator-service-contract} 与表~\ref{tab:relation-service-contract}。
+
+\begin{table}[H]
+  \centering
+  \caption{DecodeService 公共方法契约。}
+  \label{tab:decode-service-contract}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{3.5cm}}
+    \toprule
+    方法 & 签名 & 约束 \\
+    \midrule
+    analyzeText & async (options: \{ text, context?, relationId?, skipPII? \}) => DecodeResponse & text 非空且不超过 5000 字；relationId 存在时自动拼接关系上下文；LLM 超时 10 秒则退回到启发式分析 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{SimulatorService 公共方法契约。}
+  \label{tab:simulator-service-contract}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{3.5cm}}
+    \toprule
+    方法 & 签名 & 约束 \\
+    \midrule
+    getScenarios & () => ScenarioItem[] & 返回固定排序的三个场景 \\
+    startSession & async (scenarioId, guestSessionId?, userId?) => SimulatorResponse & scenarioId 必须在预设目录中；会话初始消息从 openings 中随机选取 \\
+    processTurn & async (sessionId, message, guestSessionId?) => SimulatorResponse & 会话必须处于 active 状态；用户消息存入 turns 表并返回 AI 回复与评分 \\
+    restartSession & async (sessionId, guestSessionId?, userId?) => SimulatorResponse & 旧会话标记为 completed，新建同场景会话 \\
+    endSession & async (sessionId) => SimulatorEndResponse & 计算用户 turns 的平均得分并生成总结反馈 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \caption{RelationService 公共方法契约。}
+  \label{tab:relation-service-contract}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{3.5cm}}
+    \toprule
+    方法 & 签名 & 约束 \\
+    \midrule
+    list & async (userId) => RelationNodeDTO[] & 按 position 排序返回 \\
+    create & async (params: CreateRelationParams) => RelationNodeDTO & name 非空且不超过 100 字符；单个用户最多 10 个节点；自动生成 Socratic 上下文 \\
+    update & async (id, userId, params) => RelationNodeDTO & 鉴权：只能修改自己创建的关系 \\
+    delete & async (id, userId) => void & 鉴权同上 \\
+    regenerateContext & async (id, userId) => RelationNodeDTO & 基于现有字段重新生成 SocraticPromptTemplate \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{错误码设计}
+
+业务层统一使用 BackendError 层级，包含 8 个错误码及其对应的 HTTP 状态码：
+
+业务层统一使用 BackendError 层级，包含 8 个错误码及其对应的 HTTP 状态码，见表~\ref{tab:backend-error-codes}。
+
+\begin{table}[H]
+  \centering
+  \caption{BackendError 错误码映射。}
+  \label{tab:backend-error-codes}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.5cm} >{\raggedright\arraybackslash}p{2cm} >{\raggedright\arraybackslash}X}
+    \toprule
+    错误码 & HTTP 状态 & 触发场景 \\
+    \midrule
+    BAD\_REQUEST & 400 & 输入校验失败、参数缺失 \\
+    UNAUTHORIZED & 401 & 未登录且需要登录态的操作 \\
+    FORBIDDEN & 403 & 用户尝试操作不属于自己资源 \\
+    NOT\_FOUND & 404 & 关系、会话或练习条目不存在 \\
+    RATE\_LIMITED & 429 & 请求频率超过阈值 \\
+    TIMEOUT & 408 & LLM 调用或下游服务超时 \\
+    INTERNAL\_ERROR & 500 & 未预期的运行时异常 \\
+    SERVICE\_UNAVAILABLE & 503 & 数据库或外部服务不可用 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+}
 
 \section{数据对象与持久化组织}
 
@@ -74,6 +207,89 @@ Pebble 当前可以被理解为一个六层结构。图~\ref{fig:pebble-system-l
 
 这种分组方式与前文的方法结构是一致的。互动过程组承载“当前输入与当前会话”，长期记忆组承载“练习记录与关系对象”，身份组则决定这些对象由匿名用户还是登录用户持有。
 
+\section{数据库实体关系与 JSONB 结构}
+
+\reportadd{
+\subsection{实体关系}
+
+从数据库 schema 可以画出以下核心关系：
+
+\begin{itemize}
+  \item \texttt{user\_profiles}（1）→（N）\texttt{relation\_nodes}：一个用户可拥有多个关系对象，通过 \texttt{userId} 外键关联，级联删除。
+  \item \texttt{user\_profiles}（1）→（N）\texttt{practice\_entries}：一个用户可保存多条练习记录。
+  \item \texttt{guest\_sessions}（1）→（N）\texttt{practice\_entries}：匿名访客也可保存练习记录，\texttt{guestSessionId} 与 \texttt{userId} 互斥（一条记录只绑定一种身份）。
+  \item \texttt{simulation\_sessions}（1）→（N）\texttt{simulation\_turns}：一个陪练会话包含多条轮次消息，通过 \texttt{sessionId} 外键关联，级联删除。
+  \item \texttt{user\_profiles}（1）→（N）\texttt{simulation\_sessions}：登录用户创建的陪练会话绑定到用户；匿名访客创建的则绑定到 guest session。
+\end{itemize}
+
+\texttt{analysis\_logs}、\texttt{panic\_sessions}、\texttt{user\_activity\_stats} 目前为独立表，未与其他业务表建立外键关系，分别通过 \texttt{userId} 或 \texttt{guestSessionId} 进行弱关联。
+
+\subsection{JSONB 字段结构}
+
+数据库中有三个表使用 JSONB 存储结构化快照，其内部 schema 见表~\ref{tab:jsonb-schemas}。
+
+\begin{table}[H]
+  \centering
+  \caption{JSONB 字段结构定义。}
+  \label{tab:jsonb-schemas}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3cm} >{\raggedright\arraybackslash}p{3cm} >{\raggedright\arraybackslash}X}
+    \toprule
+    表名 & JSONB 字段 & 内部结构 \\
+    \midrule
+    practice\_entries & content\_jsonb & \texttt{originalText}: 原始输入文本; \texttt{analysis}: \{ attackType, scenario, subtext, emotionScore, neutralityScore \}; \texttt{replyOptions}: \{\[\] id, label, content, tone \} \\
+    simulation\_turns & analysis\_jsonb & \texttt{score}: 情绪得分; \texttt{label}: 等级标签; \texttt{feedback}: 即时反馈文本 \\
+    simulation\_sessions & history\_snapshot & \texttt{totalTurns}: 轮次总数; \texttt{averageScore}: 平均得分 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+使用 JSONB 而非独立列的原因是：这些字段的内部结构可能随产品迭代而调整，JSONB 允许在不解耦 schema 的情况下扩展新字段。但其代价是失去了数据库层面的类型约束，需要在前端 DTO 层和服务层做额外的运行时校验。
+}
+
+\section{设计系统架构}
+
+\reportadd{
+Pebble 的设计系统并非仅是一套视觉规范，而是通过 TypeScript 令牌文件、Tailwind CSS 配置与可复用组件三层共同实现的工程化体系。
+
+\subsection{设计令牌}
+
+所有视觉常量集中在 \texttt{lib/design-system/tokens.ts} 中定义，分为五组：
+
+\begin{itemize}
+  \item 颜色令牌：pebbleColors（rock, healing, background, accent, warn, text, shelter, storm, insight）
+  \item 字体令牌：pebbleFonts（serif, sans, display）
+  \item 圆角令牌：pebbleRadii（有机鹅卵石形状 pebble 及其三个变体 pebble1/2/3，以及标准 pill）
+  \item 阴影令牌：pebbleShadows（glass, soft, glow）
+  \item 动效时长：pebbleMotionDurations（brisk 120ms, gentle 200ms, reveal 320ms, ambient 600ms）
+\end{itemize}
+
+这些令牌同时通过 CSS 变量注入到 \texttt{globals.css} 中，使组件既可以消费 TypeScript 常量，也可以直接引用 CSS 变量。
+
+\subsection{组件层级}
+
+设计系统组件按职责分为三层：
+
+\begin{itemize}
+  \item 基础层（atoms）：PebbleButton、GlassCard、StatusPill、PebbleInputShell。它们只依赖设计令牌，不依赖业务状态。
+  \item 布局层（layouts）：PageShell、MainHeader、CenteredStageLayout。它们负责页面级容器和导航结构。
+  \item 业务组件（molecules/organisms）：BreathingOrb、DecoderDemo、ScenarioCard、CoachingPanel。它们组合基础层组件，并接入业务状态。
+\end{itemize}
+
+这种分层使得基础层组件可以被独立测试和复用，而业务组件则专注于状态与交互逻辑。
+
+\subsection{呼吸状态机}
+
+急救呼吸页的核心逻辑被提取为纯函数状态机 \texttt{lib/breathing/breathing-machine.ts}，与 React 完全解耦。它只暴露三个导出：
+
+\begin{itemize}
+  \item \texttt{BreathingPhase} 类型：'idle' | 'inhale' | 'hold' | 'exhale'
+  \item \texttt{BREATHING\_CYCLE} 常量：定义 4-7-8 三阶段时长（毫秒）
+  \item \texttt{nextPhase(phase)} 函数：按 inhale → hold → exhale → inhale 循环推进
+\end{itemize}
+
+UI 层通过 \texttt{useBreathing} Hook 消费该状态机，负责把阶段映射到动画关键帧与文案提示。这种分离使呼吸逻辑可以在无 DOM 环境中进行单元测试。
+}
+
 \section{匿名会话与登录用户的双轨支撑}
 
 Pebble 当前的一个重要系统特征，是同时支持匿名访客与登录用户两种路径。匿名访客主要通过 guest session 进入解码、陪练与练习沉淀路径；关系档案相关能力则更多依赖登录用户及其本地用户画像。
@@ -87,6 +303,36 @@ Pebble 当前的一个重要系统特征，是同时支持匿名访客与登录�
 \end{itemize}
 
 这一设计提升了系统的可迁移性与边界清晰度。匿名访客可以先体验核心功能，登录用户则可以逐步进入关系档案与长期个性化路径，两者在数据层又通过明确的 \texttt{guestSessionId} 与 \texttt{userId} 关联保持可区分性。
+
+\section{数据流实例：从用户输入到持久化}
+
+\reportadd{
+为了把上述分层、模块与数据对象之间的关系具体化，本节以“读心翻译”路径为例，追踪一条用户输入从页面到数据库的完整数据流。
+
+\begin{enumerate}
+  \item 用户输入：用户在翻译页输入文本，触发 \texttt{useTranslatorStore.decode()}。
+  \item 状态层校验：store 检查输入非空且未处于 analyzing 状态，将 status 设为 'analyzing'。
+  \item 跨 store 读取：decode 方法通过 \texttt{useUserCenterStore.getState().selectedRelationId} 获取当前关系标识。
+  \item 前端调用层：\texttt{decode-client.ts} 将 \texttt{\{ text, relationId \}} 序列化为 JSON，通过 \texttt{fetch('/api/decode')} 发送 POST 请求，并设置 15 秒超时。
+  \item 接口层：Next.js Route Handler 接收请求，校验 Content-Type 与请求体结构，提取 guest session cookie。
+  \item 业务层：\texttt{DecodeService.analyzeText()} 被调用。它依次执行：
+    \begin{itemize}
+      \item 输入长度校验（$\le$ 5000 字符）
+      \item PII 脱敏（调用 \texttt{redactSensitiveText}）
+      \item 关系上下文拼接（若 relationId 存在，查询 \texttt{relation\_nodes} 表并拼接字段）
+      \item LLM 分析（带 10 秒超时）
+      \item 若 LLM 失败，退回到启发式关键词匹配分析
+      \item 生成三档回复建议
+      \item 持久化分析元数据到 \texttt{analysis\_logs} 表
+    \end{itemize}
+  \item 响应映射：业务层返回 \texttt{DecodeResponse}，接口层包装为统一响应体返回前端。
+  \item 前端状态更新：\texttt{decode-client.ts} 解析响应并映射为前端 \texttt{DecodeResponse} 类型，store 将 result 与 status 更新为 'result'。
+  \item UI 渲染：翻译页根据 result 渲染表面语义、潜台词、情绪状态与三档回复建议。
+  \item 可选保存：用户点击“存入练习本”时，触发 \texttt{practice-client.ts} 调用 \texttt{POST /api/practice}，\texttt{PracticeService} 将结果写入 \texttt{practice\_entries} 表的 \texttt{content\_jsonb} 字段。
+\end{enumerate}
+
+这条路径展示了 Pebble 六层架构的完整协作：状态层管理交互状态，调用层统一网络请求，接口层做边界校验，业务层执行业务逻辑与降级策略，数据层完成持久化。每一层只与相邻层通信，不跨层直接调用。
+}
 
 \section{资源与退化策略}
 
@@ -107,4 +353,6 @@ Pebble 当前的一个重要系统特征，是同时支持匿名访客与登录�
 
 \section{本章小结}
 
-第八章说明了 Pebble 当前的系统骨架已经具备明确的层次划分、模块边界和数据承载方式。前端页面、客户端状态、请求适配、API 接口、业务服务、仓储与数据库共同围绕关系对象、练习沉淀和会话支持链组织成一个可扩展的小型全栈系统。下一章将在此基础上继续进入示例、结果与验证，讨论这些结构如何在实际交互中体现为可观察行为与可验证结果。
+\reportchg{本节读完后，读者应能描述 Pebble 的六层架构中每一层的职责边界，并指出四个核心模块之间的协作关系。}{本节读完后，读者应能描述 Pebble 的六层架构中每一层的职责边界；画出前端四个 Zustand store 的状态字段与跨 store 通信关系；说明业务层核心服务的方法签名与错误码设计；解释数据库表之间的实体关系与 JSONB 字段的使用理由；并追踪一条用户输入从页面到数据库的完整数据流路径。}
+
+\reportdel{下一章将在此基础上继续进入示例、结果与验证，讨论这些结构如何在实际交互中体现为可观察行为与可验证结果。}\reportadd{本章补充了此前缺失的前端状态设计、服务接口契约、数据库实体关系、JSONB 结构定义、设计系统架构与完整数据流追踪。下一章将在此基础上继续进入示例、结果与验证，讨论这些结构如何在实际交互中体现为可观察行为与可验证结果。}

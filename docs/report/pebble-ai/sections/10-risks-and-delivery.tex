@@ -1,8 +1,91 @@
 \chapter{风险、局限与下一步交付}
 
-\noindent\textit{本节待填：交代主要风险、局限、交付边界与后续推进建议。}
+\section{本章作用}
 
-% 待回答问题：
-% 1. 最大风险在哪里？
-% 2. 哪些内容仍待补证据？
-% 3. 下一步应先做什么？
+本章基于前九章的论述，把 Pebble 当前面临的主要风险、已知局限、交付边界与后续推进建议集中呈现。它旨在让读者在理解系统能力的同时，也清楚系统尚未跨越的边界，从而避免把"设计意图"误读为"已保证能力"。
+
+\section{主要风险}
+
+\subsection{技术风险}
+
+表~\ref{tab:pebble-tech-risks} 对上述技术风险做了汇总。
+
+\begin{table}[H]
+  \centering
+  \caption{Pebble 当前的主要技术风险及其缓解状态。}
+  \label{tab:pebble-tech-risks}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.5cm} >{\raggedright\arraybackslash}p{2.5cm}}
+    \toprule
+    风险 & 描述 & 影响 & 缓解措施 \\
+    \midrule
+    LLM 供应商质量波动 & 解码与陪练的核心分析依赖大语言模型，供应商响应质量、延迟与可用性均存在不可控波动 & 高 & 已部署确定性 fallback 机制，可在供应商不可用时退回本地启发式分析 \\
+    情绪敏感内容的安全边界 & 用户输入可能包含 crisis-like 文本，系统若处理不当可能引发伦理或法律问题 & 高 & PII 脱敏、安全降级响应与明确的产品边界声明（非医疗诊断） \\
+    单机限流的扩展瓶颈 & 当前限流基于内存实现，多实例部署时无法共享限流状态 & 中 & 架构已预留 Redis 接入点，待多实例需求明确后迁移 \\
+    数据库连接在开发环境的退化 & Neon/PostgreSQL 连接在本地开发或网络不稳定时可能失效 & 中 & 核心接口（如解码）已具备 fallback，但持久化功能会降级 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{产品风险}
+
+\begin{itemize}
+  \item 效果验证不足：当前可以确认系统链路与结果结构已存在，但没有充分证据证明解码结果在广泛语境中都具有稳定高质量，也没有证据表明模拟陪练已形成可量化的长期训练收益。
+  \item 用户留存依赖关系档案：关系档案是 Pebble 差异化价值的核心来源，但若用户在初期未建立足够的关系对象，系统可能退化为与通用情绪分析工具差异不大的产品。
+  \item 匿名用户数据迁移摩擦：当前匿名访客可通过 guest session 体验核心功能，但登录后的数据合并逻辑尚待完善，可能成为用户从"体验"到"留存"的转换障碍。
+\end{itemize}
+
+\subsection{合规与伦理风险}
+
+\begin{itemize}
+  \item Pebble 明确声明不提供心理诊断、医学治疗或人格定性，但系统输出的分析结果仍可能被用户误读为专业判断。产品层面需要在关键输出位置持续强化"建议仅供参考"的边界提示。
+  \item 关系档案包含用户与特定关系对象的互动历史与情境补充，属于高度敏感的个人数据。数据加密、访问控制与用户删除权需要持续审计。
+\end{itemize}
+
+\section{已知局限}
+
+\begin{itemize}
+  \item 多语言支持当前仅覆盖中文，英文界面与多语言切换尚未实现。
+  \item 急救呼吸路径的 \texttt{panic\_sessions} 记录功能已建表但尚未接入运行时，无法自动追踪用户的使用频率与恢复时长。
+  \item 关系档案的"长期洞察"与"策略适配"仍处于数据层就绪、分析层待建状态：系统可以存储关系对象，但尚未基于多轮互动自动生成可回看的策略建议或趋势分析。
+  \item 前端测试目前以单元测试和组件测试为主，缺乏端到端（E2E）测试覆盖完整用户旅程。
+  \item 后端部分仓库层（simulation-repository、session-repository）的测试覆盖较薄。
+\end{itemize}
+
+\section{交付边界}
+
+本报告所描述的 Pebble 系统，当前可稳定交付的范围包括：
+
+\begin{itemize}
+  \item 首页、读心翻译页、模拟陪练场页、急救呼吸页与个人中心的前端交互实现。
+  \item 解码、陪练、练习本、关系管理、场景目录的 API 端点与后端服务层。
+  \item 基于 Drizzle ORM + PostgreSQL 的数据持久化与 2 次数据库迁移。
+  \item 设计系统组件库与 Tailwind CSS 令牌系统。
+  \item 前端 50 个测试文件与后端 6 个测试文件构成的回归测试矩阵。
+\end{itemize}
+
+当前不在交付范围内、但已在设计意图中规划的包括：
+
+\begin{itemize}
+  \item 基于多轮互动的自动策略洞察生成。
+  \item 跨设备数据同步与离线优先架构。
+  \item 英文界面与多语言支持。
+  \item 端到端自动化测试覆盖。
+  \item 生产环境的多实例限流与 Redis 缓存层。
+\end{itemize}
+
+\section{下一步建议}
+
+基于当前状态与风险排序，后续推进建议按以下优先级展开：
+
+\begin{enumerate}
+  \item 补齐后端薄弱测试：优先为 simulation-repository 与 session-repository 补充单元测试，提升后端回归信心。
+  \item 同步 OpenAPI 文档：将 \texttt{docs/backtend/openapi.yaml} 与当前实际路由、DTO 和错误码重新对齐，并加入 CI 校验。
+  \item 完成移动端验收：对呼吸页与陪练场的移动端体验进行人工走查，补齐响应式缺口。
+  \item 接入 \texttt{panic\_sessions} 运行时：在急救呼吸流程中自动记录使用时长、完成状态与技巧类型，为后续健康洞察提供数据基础。
+  \item 启动长期洞察原型：在关系档案模块中试点"基于最近 N 次分析的回复策略趋势"，验证用户是否接受系统生成的策略建议。
+  \item 评估 E2E 测试引入：在核心用户旅程（首页 → 翻译 → 保存 practice → 查看个人中心）上引入 Playwright 或等价的端到端测试。
+\end{enumerate}
+
+\section{本章小结}
+
+本节读完后，读者应能列举 Pebble 当前面临的至少两项技术风险与两项产品风险，并说明下一步建议的优先级排序依据。

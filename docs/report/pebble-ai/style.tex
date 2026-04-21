@@ -18,6 +18,14 @@
 \usepackage{needspace}
 \usepackage{pdflscape}
 \usepackage{etoolbox}
+\usepackage{ulem}
+
+% Edit Preview Macros
+\definecolor{ReportDiffAdd}{HTML}{1F4E79}
+\definecolor{ReportDiffDel}{HTML}{9E9E9E}
+\newcommand{\reportadd}[1]{{\color{ReportDiffAdd}#1}}
+\newcommand{\reportdel}[1]{{\color{ReportDiffDel}\sout{#1}}}
+\newcommand{\reportchg}[2]{{\color{ReportDiffDel}\sout{#1}}{\color{ReportDiffAdd}#2}}
 
 \usetikzlibrary{
   arrows.meta,

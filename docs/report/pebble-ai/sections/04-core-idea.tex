@@ -40,6 +40,8 @@ Pebble 的核心思想可以概括为一句话：系统围绕具体关系对象�
 
 核心思想若要在实现中保持稳定，至少需要六条设计原则作为约束。它们并非文案层面的偏好，而是后续架构与交互设计的判断准则。
 
+表~\ref{tab:pebble-core-principles} 汇总了上述原则及其约束含义。
+
 \begin{table}[H]
   \centering
   \caption{Pebble 核心设计原则及其在系统中的约束含义。}
@@ -78,3 +80,30 @@ Pebble 的核心思想可以概括为一句话：系统围绕具体关系对象�
 \end{itemize}
 
 由此可见，第五章提出的是一组能够约束交互流程、服务编排、数据模型与内容表达的基础规则。后续章节若出现任何局部设计选择，读者都可以回到本章检验一个问题：该选择是否仍然服务于“关系上下文驱动的连续支持”这一核心思想，并且没有破坏本章确立的设计原则。
+
+\section{本章小结}
+
+本节读完后，读者应能解释为什么 Pebble 必须围绕关系上下文组织为连续支持链路，并列举至少三条约束后续设计选择的核心原则。
+
+\reportadd{
+\section{关键设计决策的权衡}
+
+Pebble 的若干核心设计并非唯一可行路径。本节明确三项关键决策的主要权衡，以及替代方案被排除的主要理由。
+
+表~\ref{tab:pebble-tradeoffs} 对上述三项决策做了进一步压缩。
+
+\begin{table}[H]
+  \centering
+  \caption{Pebble 核心设计决策的权衡对照。}
+  \label{tab:pebble-tradeoffs}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+    \toprule
+    决策 & 选定方案 & 主要收益 & 主要代价与被排除的替代方案 \\
+    \midrule
+    分析入口的组织方式 & 关系上下文优先：以关系对象为中心组织分析 & 同一句话在不同关系中获得差异化解释；长期洞察可渐进累积 & 需维护额外数据层；被排除的替代是纯文本单轮分析——更简单即时，但失去情境适配与长期记忆能力，与产品核心价值主张冲突 \\
+    系统架构深度 & Next.js BFF + PostgreSQL + Drizzle 六层全栈结构 & 支持数据沉淀、匿名/登录双轨、练习本持久化；确定性 fallback 可在服务端执行 & 引入数据库运维、迁移管理复杂度；被排除的替代是纯前端直接调用 LLM API——上线更快，但失去用户数据持久化、跨设备同步与精细权限控制 \\
+    用户身份策略 & Cookie-based guest session + 可选 Supabase Auth 登录 & 降低首次体验门槛；匿名用户可先体验核心功能 & 数据模型需同时支持 guestSessionId 和 userId；被排除的替代是强制登录——数据模型更简单，但提高使用门槛，与"低摩擦支持"的产品目标冲突 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+}
