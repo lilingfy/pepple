@@ -1,0 +1,24 @@
+\begin{tikzpicture}[
+  node distance=1.25cm,
+  every node/.style={font=\small},
+  flowstep/.style={
+    reportprocess,
+    minimum width=9.6cm,
+    minimum height=0.95cm,
+    align=left,
+    text width=9.0cm
+  }
+]
+  \node[flowstep] (s1) {1. 用户选择场景并触发会话初始化};
+  \node[flowstep, below=of s1] (s2) {2. 前端调用 \texttt{POST /api/simulator}，后端创建会话并返回开场白};
+  \node[flowstep, below=of s2] (s3) {3. \texttt{useDojoStore} 写入消息流与右侧分析面板初始状态};
+  \node[flowstep, below=of s3] (s4) {4. 用户发送回合消息；后端执行情绪分析并生成下一轮回复};
+  \node[flowstep, below=of s4] (s5) {5. 前端更新得分、标签、即时反馈与注意点，进入下一轮循环};
+  \node[flowstep, below=of s5] (s6) {6. 结束会话时调用 \texttt{/api/simulator/[sessionId]/end}，返回摘要并可沉淀到练习本};
+
+  \draw[reportarrow] (s1) -- (s2);
+  \draw[reportarrow] (s2) -- (s3);
+  \draw[reportarrow] (s3) -- (s4);
+  \draw[reportarrow] (s4) -- (s5);
+  \draw[reportarrow] (s5) -- (s6);
+\end{tikzpicture}

@@ -2,174 +2,195 @@
 
 \section{本章作用}
 
-本章集中记录 Pebble 在当前代码库中的真实实现状态、已完成能力、技术落地细节与待完善项。它与前八章的区别在于：前八章主要围绕设计意图与系统结构展开论述，本章则把论述锚定在代码库中可直接观察到的文件、接口、测试与数据对象上。
+本章集中记录 Pebble 在当前工作区中的可观测实现状态，并将仓库现状统一收敛为可核验的基线指标、能力清单、进行中事项与下一检查点。前八章与第十章可引用本章结论，但不重复展开状态细节，以保持“设计意图”与“实现现状”的边界清晰。
 
-本章的事实来源是当前工作区中的源代码、数据库迁移记录、测试文件与 OpenSpec 变更归档。所有列出的能力都以"已可运行"或"已可验证"为前提，不超前宣称尚未实现的特性。
+\section{当前基线（更新时间：2026-04-23）}
 
-\section{已完成的能力面}
-
-\subsection{前端交互层}
-
-当前代码库中已具备以下可直接运行的前端页面与组件：
-
-\begin{itemize}
-  \item 首页：包含 Hero 主视觉、统计卡片、功能入口、读心翻译演示、模拟陪练场景卡片、急救呼吸鹅卵石动画与滚动触发动效。
-  \item 读心翻译页：支持文本输入、情绪状态条展示、解码请求触发、分析结果展示（表面语义、潜台词、情绪得分）与三档回复建议（A/B/C）。
-  \item 模拟陪练场页：支持场景选择（职场越界、亲密关系、社交应对）、回合式对话、右侧实时分析面板（情绪得分、标签、即时反馈、注意点）与会话结束总结。
-  \item 急救呼吸页：支持 4-7-8 呼吸节奏引导、倒计时、暂停/重置、沉浸背景动画与波纹扩散效果。
-  \item 个人中心与关系管理：支持关系对象创建、编辑、列表展示，以及当前关系选择对翻译分析路径的上下文穿透。
-  \item 设计系统组件库：包含玻璃拟态卡片（GlassCard）、鹅卵石按钮（PebbleButton）、状态胶囊（StatusPill）、呼吸圆（BreathingOrb）、页面壳（PageShell）等 9 个以上可复用组件。
-\end{itemize}
-
-\subsection{后端服务层}
-
-后端采用 Next.js Route Handlers 作为 BFF 层，当前已实现 9 个 API 端点：
-
-表~\ref{tab:pebble-api-routes} 对当前 API 端点做了汇总。
+截至 2026-04-23，本项目已形成可运行的前端主链路、可调用的后端接口组、可迁移的数据层与可执行的测试矩阵。表~\ref{tab:pebble-progress-baseline} 给出本轮统一口径。
 
 \begin{table}[H]
   \centering
-  \caption{Pebble 当前已实现的 API 路由端点。}
-  \label{tab:pebble-api-routes}
-  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.2cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.5cm}}
+  \caption{Pebble 当前实现基线（2026-04-23）。}
+  \label{tab:pebble-progress-baseline}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.8cm} >{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}X}
     \toprule
-    端点 & 职责 & 状态 \\
+    指标 & 当前值 & 证据锚点 \\
     \midrule
-    \texttt{POST /api/decode} & 接收文本与关系上下文，返回结构化分析结果 & 已实现 \\
-    \texttt{POST /api/simulator} & 支持 \texttt{start/turn/restart} 三种会话动作 & 已实现 \\
-    \texttt{POST /api/simulator/[sessionId]/end} & 返回会话结束总结 & 已实现 \\
-    \texttt{GET /api/scenarios} & 返回固定排序的场景目录 & 已实现 \\
-    \texttt{POST /api/practice} & 保存解码或陪练结果到练习本 & 已实现 \\
-    \texttt{PATCH /api/practice/[practiceId]} & 更新收藏、归档状态 & 已实现 \\
-    \texttt{DELETE /api/practice/[practiceId]} & 删除练习条目 & 已实现 \\
-    \texttt{POST /api/relations} & 创建关系对象 & 已实现 \\
-    \texttt{GET /api/relations/[id]} & 读取关系详情 & 已实现 \\
+    API 路由模板数 & 8 & \texttt{apps/web/app/api/**/route.ts}（排除 \texttt{\_lib}） \\
+    业务 HTTP 处理方法数 & 15 & \texttt{GET/POST/PATCH/DELETE} 导出统计 \\
+    开发期 OPTIONS 方法数 & 1 & \texttt{apps/web/app/api/decode/route.ts} \\
+    数据库核心表数 & 9 & \texttt{apps/web/lib/db/schema.ts} 中 \texttt{pgTable(...)} 定义 \\
+    已执行迁移数 & 2 & \texttt{apps/web/drizzle/migrations/meta/\_journal.json} \\
+    测试文件总数 & 50 & \texttt{apps/web/tests/**/*.test.ts(x)} \\
+    测试声明总数 & 293 & \texttt{rg "it|test" apps/web/tests} 统计 \\
+    OpenSpec 活跃变更数 & 4 & \texttt{openspec/changes/*}（排除 \texttt{archive}） \\
+    OpenSpec 归档变更数 & 4 & \texttt{openspec/changes/archive/*} \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
-此外，后端还包含以下策略层能力：
+本轮基线采用以下证据层标签：
 
 \begin{itemize}
-  \item PII 脱敏：在调用 LLM 前对电话、邮箱、姓名等敏感信息执行自动替换。
-  \item 限流与超时：按 session 和 IP 双重约束限流；LLM 调用设置硬超时并具备降级路径。
-  \item 确定性 fallback：当 LLM 供应商不可用时，后端退回基于规则的本地启发式分析，保证基础功能不中断。
-  \item 匿名会话管理：通过 \texttt{guest\_session\_id} cookie 为未登录用户提供最小身份与部分持久化能力。
+  \item \texttt{repo-observed fact}：直接来自源码、迁移记录、测试目录与 OpenSpec 目录结构。
+  \item \texttt{report synthesis}：将多处证据汇总为口径一致的指标表与进度判断。
+  \item \texttt{design intent}：仅在“进行中事项”与“下一检查点”小节用于描述已确认计划，不与现状事实混写。
 \end{itemize}
 
-\subsection{数据持久化层}
+\section{已完成能力面}
 
-数据库采用 PostgreSQL（通过 Drizzle ORM 管理），当前已执行 2 次迁移，包含 8 张核心数据表：
+\subsection{前端交互层}
 
-表~\ref{tab:pebble-db-tables} 对当前数据库表做了汇总。
+当前可运行的前端能力覆盖以下页面与交互面：
+
+\begin{itemize}
+  \item 首页：主视觉、功能入口、滚动触发动效与模块化信息卡片已联通。
+  \item 读心翻译页：支持文本输入、解码触发、结构化结果展示与建议保存入口。
+  \item 模拟陪练页：支持场景选择、回合对话、右侧实时反馈与会话结束总结。
+  \item 急救呼吸页：支持 4-7-8 节奏、倒计时、暂停/重置与阶段同步提示。
+  \item 关系管理与个人中心：支持关系对象创建、编辑、读取及当前关系选择持久化。
+  \item 设计系统组件：玻璃卡片、按钮、状态胶囊、页面壳与呼吸动效组件已投入页面复用。
+\end{itemize}
+
+前端状态管理与设计系统的具体实现细节如下：
+
+\begin{itemize}
+  \item 四个 Zustand store（翻译、陪练、关系、用户中心）通过显式状态读取调用实现跨 store 通信。翻译 store 在解码时通过全局用户中心 store 的读取接口获取当前关系标识；用户中心 store 使用 persist 中间件将当前关系标识持久化到 localStorage，页面刷新后通过 \texttt{loadSelectedRelation} 重新拉取详情。
+  \item 设计令牌集中在 \texttt{lib/design-system/tokens.ts} 中定义，包含颜色（\texttt{pebbleColors}）、字体（\texttt{pebbleFonts}）、圆角（\texttt{pebbleRadii}）、阴影（\texttt{pebbleShadows}）与动效时长（\texttt{pebbleMotionDurations}）五组常量，并同时通过 CSS 变量注入 \texttt{globals.css}。
+  \item 呼吸状态机提取为纯函数模块 \texttt{lib/breathing/breathing-machine.ts}，暴露 \texttt{BreathingPhase} 类型、\texttt{BREATHING\_CYCLE} 常量与 \texttt{nextPhase} 函数，与 React 完全解耦。
+\end{itemize}
+
+\subsection{后端服务层}
+
+后端采用 Next.js Route Handlers 作为 BFF。表~\ref{tab:pebble-api-routes} 给出当前路由模板与方法口径。
 
 \begin{table}[H]
   \centering
-  \caption{Pebble 当前数据库表及其职责。}
+  \caption{Pebble API 路由模板与方法口径（2026-04-23）。}
+  \label{tab:pebble-api-routes}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.1cm} >{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}X}
+    \toprule
+    路径模板 & 方法 & 核心职责 \\
+    \midrule
+    \texttt{/api/decode} & \texttt{POST, GET} & 解码分析主入口与健康检查；开发期附带 \texttt{OPTIONS} \\
+    \texttt{/api/scenarios} & \texttt{GET} & 返回陪练场景目录 \\
+    \texttt{/api/simulator} & \texttt{POST} & 统一承接 start/turn/restart/end 动作 \\
+    \texttt{/api/simulator/[sessionId]/end} & \texttt{POST} & 按会话 ID 结束并返回摘要 \\
+    \texttt{/api/practice} & \texttt{GET, POST} & 练习条目列表与创建 \\
+    \texttt{/api/practice/[practiceId]} & \texttt{GET, PATCH, DELETE} & 单条练习的读取、更新、删除 \\
+    \texttt{/api/relations} & \texttt{GET, POST} & 关系节点列表与创建 \\
+    \texttt{/api/relations/[id]} & \texttt{GET, PATCH, DELETE} & 单关系节点读取、更新、删除 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+后端策略层已具备以下可观测能力：
+
+\begin{itemize}
+  \item PII 脱敏：解码路径在分析前执行敏感信息替换。
+  \item 限流与超时：按 session/IP 执行请求频率控制，分析链路设置超时边界。
+  \item 确定性降级：分析失败时回退启发式路径，保障主功能连续可用。
+  \item 匿名会话：以 \texttt{guest\_session\_id} 支撑未登录用户的最小身份路径。
+\end{itemize}
+
+前端调用层已实现的 client 模块包括 \texttt{decode-client.ts}、\texttt{simulator-client.ts}、\texttt{relation-client.ts} 与 \texttt{practice-client.ts}，分别负责把对应功能域的 store 动作映射为统一 HTTP 请求。其中解码客户端设置 15 秒超时，练习客户端负责把解码或陪练结果写入练习条目。
+
+\subsection{数据持久化层}
+
+数据库采用 PostgreSQL + Drizzle ORM。已执行 2 次迁移，当前核心表数为 9。表~\ref{tab:pebble-db-tables} 汇总各表职责。
+
+\begin{table}[H]
+  \centering
+  \caption{Pebble 数据表与职责分组（2026-04-23）。}
   \label{tab:pebble-db-tables}
   \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{3cm}}
     \toprule
     表名 & 职责 & 数据分组 \\
     \midrule
-    \texttt{user\_profiles} & 登录用户的本地画像与模型偏好 & 身份组 \\
-    \texttt{guest\_sessions} & 匿名访客的 cookie 会话绑定 & 身份组 \\
-    \texttt{relation\_nodes} & 关系档案、生成上下文与情境补充 & 长期记忆组 \\
-    \texttt{practice\_entries} & 从解码与陪练收敛的练习材料 & 长期记忆组 \\
-    \texttt{analysis\_logs} & 分析元数据（不含原始敏感文本） & 互动过程组 \\
+    \texttt{user\_profiles} & 登录用户画像与偏好配置 & 身份组 \\
+    \texttt{guest\_sessions} & 匿名访客会话绑定 & 身份组 \\
+    \texttt{relation\_nodes} & 关系档案与生成上下文 & 长期记忆组 \\
+    \texttt{practice\_entries} & 解码/陪练结果沉淀 & 长期记忆组 \\
+    \texttt{analysis\_logs} & 分析元数据记录 & 互动过程组 \\
     \texttt{simulation\_sessions} & 陪练会话摘要与状态 & 互动过程组 \\
     \texttt{simulation\_turns} & 陪练轮次消息快照 & 互动过程组 \\
-    \texttt{panic\_sessions} & 急救呼吸使用记录（待接入运行时） & 互动过程组 \\
-    \texttt{user\_activity\_stats} & 用户日常活跃聚合统计 & 长期记忆组 \\
+    \texttt{panic\_sessions} & 呼吸流程记录（结构已就绪） & 互动过程组 \\
+    \texttt{user\_activity\_stats} & 用户活跃聚合统计（结构已就绪） & 长期记忆组 \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
-\subsection{测试覆盖}
-
-当前测试体系分为前端测试与后端测试两层：
+数据库中有三个表使用 JSONB 存储结构化快照，其内部字段如下：
 
 \begin{itemize}
-  \item 前端测试：50 个测试文件，覆盖首页、翻译页、陪练场、呼吸页、个人中心、设计系统组件与自定义 Hook，累计约 448 个测试用例。
-  \item 后端测试：6 个测试文件，覆盖 schema、contracts、错误处理、会话管理、解码服务与路由适配器。
+  \item \texttt{practice\_entries.content\_jsonb}：包含 \texttt{originalText}（原始输入文本）、\texttt{analysis}（含 \texttt{attackType}、\texttt{scenario}、\texttt{subtext}、\texttt{emotionScore}、\texttt{neutralityScore}）与 \texttt{replyOptions} 数组（含 \texttt{id}、\texttt{label}、\texttt{content}、\texttt{tone}）。
+  \item \texttt{simulation\_turns.analysis\_jsonb}：包含 \texttt{score}（情绪得分）、\texttt{label}（等级标签）与 \texttt{feedback}（即时反馈文本）。
+  \item \texttt{simulation\_sessions.history\_snapshot}：包含 \texttt{totalTurns}（轮次总数）与 \texttt{averageScore}（平均得分）。
 \end{itemize}
 
-测试框架采用 Vitest，前端测试在 jsdom 环境下运行，后端测试在 Node 环境下运行。
+\subsection{测试矩阵}
 
-\section{技术实现状态}
-
-\subsection{设计系统落地}
-
-设计系统已通过 Tailwind CSS 配置、CSS 变量与 TypeScript 令牌文件三重方式落地：
+当前测试矩阵由 50 个测试文件构成，按目录分布如下：
 
 \begin{itemize}
-  \item 颜色令牌：\texttt{pebble-rock}、\texttt{pebble-healing}、\texttt{pebble-bg}、\texttt{pebble-accent}、\texttt{pebble-warn} 已定义并在组件中消费。
-  \item 字体系统：Noto Serif SC（标题）、Noto Sans SC（正文）、Public Sans（英文显示）已配置。
-  \item 圆角系统：有机鹅卵石形状（\texttt{border-radius: 60\% 40\% 70\% 30\% / 40\% 50\% 60\% 40\%}）及其变体已实现。
-  \item 动画系统：呼吸动画（19 秒周期）、浮动背景动画（12 秒周期）与页面过渡动画均已通过 CSS keyframes 或 Framer Motion 实现。
+  \item 前端测试：37 个文件。
+  \item 后端服务测试：6 个文件。
+  \item API 路由测试：4 个文件。
+  \item 中间件测试：2 个文件。
+  \item 工具测试：1 个文件。
 \end{itemize}
 
-\subsection{OpenSpec 变更归档}
+按测试声明计数（\texttt{it/test}）当前为 293 条。该值用于口径追踪，不替代完整质量评估；完整回归结论需以实际测试运行输出为准。
 
-项目已通过 OpenSpec 工作流完成 4 个变更的归档：
+\section{进行中事项}
+
+\subsection{OpenSpec 变更状态}
+
+OpenSpec 当前已归档 4 个变更，活跃 4 个变更。活跃项如下：
 
 \begin{itemize}
-  \item 建立 Pebble 设计系统（TB-005）
-  \item 构建 Pebble 首页（TB-001）
-  \item 构建 Pebble 读心翻译器（TB-002）
-  \item 后端 BFF 与接口技术预研（TB-006，部分完成）
+  \item \texttt{build-pebble-breathing}
+  \item \texttt{build-pebble-dojo}
+  \item \texttt{refine-home-page-ui}
+  \item \texttt{refine-translator-ui}
 \end{itemize}
 
-另有 2 个活跃变更尚未归档：首页 UI 精细化、翻译器 UI 精细化、陪练场构建、急救呼吸构建。
-
-\section{当前阻塞与待完善项}
-
-\subsection{后端 BFF 剩余工作}
-
-TB-006 任务书的后端 BFF 层虽已具备主要路由骨架，但以下子任务仍处于待完成状态：
+\subsection{进行中工程项}
 
 \begin{itemize}
-  \item 部分后端仓库层测试尚未补齐（simulation-repository、session-repository 的测试覆盖较薄）。
-  \item OpenAPI 文档（\texttt{docs/backtend/openapi.yaml}）需要与当前实际路由保持一致并重新校验。
-  \item 多实例部署时的 Redis 级限流尚未接入，当前限流为单机内存实现。
+  \item 后端会话持久化相关路径的测试补强尚未完成。
+  \item \texttt{docs/backend/openapi.yaml} 与当前实现的同步校验尚未完成。
+  \item \texttt{panic\_sessions} 与 \texttt{user\_activity\_stats} 已有结构定义，运行时写入链路仍在建设。
 \end{itemize}
 
-\subsection{移动端与可访问性}
+\section{阻塞、依赖与风险}
+
+当前阻塞与风险主要集中在三类依赖：
 
 \begin{itemize}
-  \item 呼吸页的移动端人工验收尚未完成（TB-004 子任务 6）。
-  \item 部分页面的 \texttt{prefers-reduced-motion} 降级策略已配置，但尚未经过系统性测试。
+  \item 验证深度依赖：后端关键路径自动化测试仍需补齐，影响发布信心上限。
+  \item 文档一致性依赖：OpenAPI 规范未与接口演进保持同频，影响协作效率。
+  \item 运行时沉淀依赖：呼吸与活跃度数据链尚未闭环，限制长期洞察能力建设。
 \end{itemize}
 
-\subsection{功能缺口}
+\section{下一检查点与证据更新计划}
+
+下一次全量口径复核日期设为 \textbf{2026-04-30}。在该日期前，优先交付以下可核验产物：
+
+\begin{enumerate}
+  \item 会话持久化关键路径的后端测试补强结果与回归记录。
+  \item \texttt{docs/backend/openapi.yaml} 与路由/DTO/错误码的一致性校验记录。
+  \item \texttt{panic\_sessions} 与 \texttt{user\_activity\_stats} 至少一条运行时写入链路的联通证明。
+\end{enumerate}
+
+证据来源维持如下约束：
 
 \begin{itemize}
-  \item \texttt{panic\_sessions} 表已创建迁移，但尚未在运行时接入急救呼吸流程的自动记录。
-  \item 用户活跃度统计（\texttt{user\_activity\_stats}）表已定义，但数据写入逻辑尚未完整实现。
-  \item 关系档案的"长期洞察"与"策略适配"能力处于数据层就绪、分析层待建状态。
+  \item 指标类结论仅接受源码、迁移元数据、测试目录与 OpenSpec 目录的直接证据。
+  \item 计划类结论仅接受已确认任务清单，不将推测写为已完成事实。
+  \item 下次更新时同步刷新“更新时间、指标口径、活跃变更列表”三项字段。
 \end{itemize}
-
-\section{里程碑回顾}
-
-表~\ref{tab:pebble-milestones} 对当前主要里程碑做了汇总。
-
-\begin{table}[H]
-  \centering
-  \caption{Pebble 当前已实现的主要里程碑。}
-  \label{tab:pebble-milestones}
-  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.5cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.8cm}}
-    \toprule
-    时间 & 里程碑 & 证据 \\
-    \midrule
-    2026-03-19 & 设计系统完成（TB-005） & 颜色/字体/圆角/动画令牌落地 \\
-    2026-03-21 & 首页完成（TB-001） & 页面、测试、导航与动效可运行 \\
-    2026-03-22 & 读心翻译器完成（TB-002） & 解码链路、回复建议、practice 入口可用 \\
-    2026-03-23 & 急救呼吸完成（TB-004） & 4-7-8 节奏、倒计时、动画通过测试 \\
-    2026-03-24 & 后端 BFF 骨架完成（TB-006 部分） & API 路由、DTO、仓库层、策略层已落地 \\
-    2026-03-30 & 关系系统与用户中心集成 & 关系 CRUD、上下文穿透、Supabase Auth 绑定 \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
 
 \section{本章小结}
 
-本节读完后，读者应能列举 Pebble 当前已实现的前端页面、后端端点、数据库表与测试覆盖范围，并指出至少两项尚未完成的阻塞或待完善项。
+本节读完后，读者应能给出 Pebble 截至 2026-04-23 的统一进度口径，指出 8 项路由模板、9 张核心表、50 个测试文件与 4 个活跃 OpenSpec 变更，并明确下一检查点日期为 2026-04-30。

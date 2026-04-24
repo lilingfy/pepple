@@ -41,6 +41,16 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Supabase CLI 命令（优先使用系统 supabase，否则回退到 bunx）
+SUPABASE_CMD="supabase"
+if ! command -v "$SUPABASE_CMD" &> /dev/null; then
+    if command -v bun &> /dev/null; then
+        SUPABASE_CMD="bunx supabase"
+    elif command -v npx &> /dev/null; then
+        SUPABASE_CMD="npx supabase"
+    fi
+fi
+
 # 检查命令是否存在
 check_command() {
     if ! command -v "$1" &> /dev/null; then
@@ -144,7 +154,6 @@ main() {
 
     # 前置检查
     log_info "检查依赖..."
-    check_command "supabase"
     check_command "node"
     check_command "npm"
     check_command "lsof"
@@ -154,7 +163,14 @@ main() {
         log_warn "Supabase 已在运行 (端口: $SUPABASE_PORT)"
     else
         log_info "启动 Supabase..."
-        supabase start
+        # 排除 edge-runtime：当前环境下 Edge Runtime 容器健康检查持续失败
+        # 会导致 supabase start 超时并回滚所有服务。如需 Edge Functions
+        # 可设置 ENABLE_EDGE_RUNTIME=1 来启用。
+        if [ "${ENABLE_EDGE_RUNTIME:-0}" = "1" ]; then
+            $SUPABASE_CMD start
+        else
+            $SUPABASE_CMD start --exclude edge-runtime
+        fi
         log_success "Supabase 启动完成"
     fi
 

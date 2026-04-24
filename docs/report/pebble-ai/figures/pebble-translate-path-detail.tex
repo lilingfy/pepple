@@ -1,0 +1,48 @@
+\begin{tikzpicture}[
+  node distance=1.15cm,
+  every node/.style={font=\small},
+  flowstep/.style={
+    reportprocess,
+    minimum width=6.8cm,
+    minimum height=0.85cm,
+    align=left,
+    text width=6.4cm
+  },
+  flowdecision/.style={
+    reportdecision,
+    minimum width=1.4cm,
+    minimum height=0.7cm,
+    align=center,
+    inner sep=1pt
+  },
+  flowerror/.style={
+    reportnode,
+    minimum width=2.8cm,
+    minimum height=0.75cm,
+    align=center
+  }
+]
+  \node[flowstep] (s1) {1. 用户在翻译页输入文本并触发分析};
+  \node[flowdecision, below=of s1, xshift=-2.2cm] (d1) {输入\\校验};
+  \node[flowerror, below=of s1, xshift=2.2cm] (e1) {返回错误};
+  \node[flowstep, below=of d1, xshift=2.2cm] (s2) {2. 读取全局关系标识并注入请求体};
+  \node[flowstep, below=of s2] (s3) {3. 调用 POST /api/decode};
+  \node[flowdecision, below=of s3, xshift=-2.2cm] (d2) {限流\\校验};
+  \node[flowerror, below=of s3, xshift=2.2cm] (e2) {返回 429};
+  \node[flowstep, below=of d2, xshift=2.2cm] (s4) {4. 执行脱敏、上下文拼接与分析};
+  \node[flowdecision, below=of s4, xshift=-2.2cm] (d3) {LLM\\裁决};
+  \node[flowstep, below=of s4, xshift=2.2cm] (s5) {5. 启发式降级};
+  \node[flowstep, below=of d3, xshift=2.2cm] (s6) {6. 前端渲染结构化结果};
+
+  \draw[reportarrow] (s1) -- (d1);
+  \draw[reportarrow] (d1) -- node[midway, left, font=\tiny] {拒绝} (e1);
+  \draw[reportarrow] (d1) -- node[midway, above, font=\tiny] {通过} (s2);
+  \draw[reportarrow] (s2) -- (s3);
+  \draw[reportarrow] (s3) -- (d2);
+  \draw[reportarrow] (d2) -- node[midway, left, font=\tiny] {拒绝} (e2);
+  \draw[reportarrow] (d2) -- node[midway, above, font=\tiny] {通过} (s4);
+  \draw[reportarrow] (s4) -- (d3);
+  \draw[reportarrow] (d3) -- node[midway, above, font=\tiny] {降级} (s5);
+  \draw[reportarrow] (d3) -- node[midway, left, font=\tiny] {成功} (s6);
+  \draw[reportarrow] (s5) -- (s6);
+\end{tikzpicture}

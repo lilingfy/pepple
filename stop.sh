@@ -74,21 +74,27 @@ stop_nextjs() {
     fi
 }
 
+# Supabase CLI 命令（优先使用系统 supabase，否则回退到 bunx）
+SUPABASE_CMD="supabase"
+if ! command -v "$SUPABASE_CMD" &> /dev/null; then
+    if command -v bun &> /dev/null; then
+        SUPABASE_CMD="bunx supabase"
+    elif command -v npx &> /dev/null; then
+        SUPABASE_CMD="npx supabase"
+    fi
+fi
+
 # 停止 Supabase
 stop_supabase() {
     log_info "检查 Supabase..."
 
-    if command -v supabase &> /dev/null; then
-        # 检查 Supabase 是否在运行
-        if lsof -Pi :"$SUPABASE_PORT" -sTCP:LISTEN -t >/dev/null 2>&1; then
-            log_info "停止 Supabase..."
-            supabase stop
-            log_success "Supabase 已停止"
-        else
-            log_warn "Supabase 未在运行"
-        fi
+    # 检查 Supabase 是否在运行
+    if lsof -Pi :"$SUPABASE_PORT" -sTCP:LISTEN -t >/dev/null 2>&1; then
+        log_info "停止 Supabase..."
+        $SUPABASE_CMD stop
+        log_success "Supabase 已停止"
     else
-        log_warn "Supabase CLI 未安装，跳过"
+        log_warn "Supabase 未在运行"
     fi
 }
 

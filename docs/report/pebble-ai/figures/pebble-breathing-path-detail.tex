@@ -1,0 +1,22 @@
+\begin{tikzpicture}[
+  node distance=1.25cm,
+  every node/.style={font=\small},
+  flowstep/.style={
+    reportprocess,
+    minimum width=9.6cm,
+    minimum height=0.95cm,
+    align=left,
+    text width=9.0cm
+  }
+]
+  \node[flowstep] (s1) {1. 用户进入急救呼吸页，界面启动倒计时与节奏提示};
+  \node[flowstep, below=of s1] (s2) {2. \texttt{useBreathing} 调用呼吸状态机，进入吸气-屏息-呼气循环};
+  \node[flowstep, below=of s2] (s3) {3. 动画层与文案层按阶段同步更新，提供实时节奏反馈};
+  \node[flowstep, below=of s3] (s4) {4. 用户可暂停、继续或重置，控制恢复过程的交互节奏};
+  \node[flowstep, below=of s4] (s5) {5. 倒计时结束后返回首页、翻译页或陪练页继续主任务};
+
+  \draw[reportarrow] (s1) -- (s2);
+  \draw[reportarrow] (s2) -- (s3);
+  \draw[reportarrow] (s3) -- (s4);
+  \draw[reportarrow] (s4) -- (s5);
+\end{tikzpicture}

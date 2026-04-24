@@ -1,0 +1,50 @@
+\begin{tikzpicture}[
+  node distance=1.15cm,
+  every node/.style={font=\small},
+  stage/.style={
+    reportprocess,
+    minimum width=6.6cm,
+    minimum height=0.85cm,
+    align=left,
+    text width=6.2cm
+  },
+  stagedecision/.style={
+    reportdecision,
+    minimum width=1.4cm,
+    minimum height=0.7cm,
+    align=center,
+    inner sep=1pt
+  },
+  stageerror/.style={
+    reportnode,
+    minimum width=2.6cm,
+    minimum height=0.75cm,
+    align=center
+  },
+  side/.style={
+    reportnode,
+    minimum width=3.4cm,
+    minimum height=0.85cm,
+    align=center
+  }
+]
+  \node[stage] (d1) {输入：请求体进入 POST /api/decode};
+  \node[stagedecision, below=of d1, xshift=-2.0cm] (g1) {校验\\门禁};
+  \node[stageerror, below=of d1, xshift=2.0cm] (e1) {返回 400/429};
+  \node[stage, below=of g1, xshift=2.0cm] (d2) {变换：脱敏文本并拼接关系上下文};
+  \node[side, right=1.6cm of d2] (relation) {关系数据表\\上下文字段};
+  \node[stagedecision, below=of d2, xshift=-2.0cm] (g2) {LLM\\裁决};
+  \node[stage, below=of d2, xshift=2.0cm] (d3) {降级：启发式关键词匹配};
+  \node[stage, below=of g2, xshift=2.0cm] (d4) {输出：返回 DecodeResponse};
+  \node[side, right=1.6cm of d4] (log) {分析日志表\\元数据落库};
+
+  \draw[reportarrow] (d1) -- (g1);
+  \draw[reportarrow] (g1) -- node[midway, left, font=\tiny] {拒绝} (e1);
+  \draw[reportarrow] (g1) -- node[midway, above, font=\tiny] {通过} (d2);
+  \draw[reportarrow] (relation.west) -- (d2.east);
+  \draw[reportarrow] (d2) -- (g2);
+  \draw[reportarrow] (g2) -- node[midway, above, font=\tiny] {降级} (d3);
+  \draw[reportarrow] (g2) -- node[midway, left, font=\tiny] {成功} (d4);
+  \draw[reportarrow] (d3) -- (d4);
+  \draw[reportarrow] (d4.east) -- (log.west);
+\end{tikzpicture}

@@ -1,0 +1,19 @@
+\begin{tikzpicture}[
+  node distance=1.8cm and 1.6cm,
+  every node/.style={font=\small}
+]
+  \node[reportnode] (created) {created};
+  \node[reportnode, right=of created] (active) {active};
+  \node[reportdecision, right=of active] (end) {结束\\裁决};
+  \node[reportnode, above right=of end] (completed) {completed};
+  \node[reportnode, below right=of end] (ended) {ended};
+  \node[reportnode, below=of created] (newsession) {新会话\\created};
+
+  \draw[reportarrow, ->] (created) -- node[midway, above, font=\tiny] {start} (active);
+  \draw[reportarrow, ->] (active) -- node[midway, above, font=\tiny] {end} (end);
+  \draw[reportarrow, ->] (end) -- node[midway, above left, font=\tiny] {正常结束} (completed);
+  \draw[reportarrow, ->] (end) -- node[midway, below left, font=\tiny] {强制结束} (ended);
+  \draw[reportarrow, ->, dashed] (completed) -- node[midway, left, font=\tiny] {restart} (newsession);
+  \draw[reportarrow, ->, dashed] (ended) -- node[midway, right, font=\tiny] {restart} (newsession);
+  \draw[reportarrow, ->, dashed] (newsession) -- node[midway, below, font=\tiny] {create} (created);
+\end{tikzpicture}

@@ -1,0 +1,16 @@
+\begin{tikzpicture}[
+  node distance=1.8cm and 1.6cm,
+  every node/.style={font=\small}
+]
+  \node[reportnode] (req) {请求到达};
+  \node[reportdecision, right=of req] (gate) {接口层\\校验裁决};
+  \node[reportnode, above right=of gate] (client) {客户端错误\\400/401/403/404/429};
+  \node[reportnode, right=of gate] (server) {服务端错误\\500/503};
+  \node[reportnode, below right=of gate] (pass) {通过 →\\业务处理};
+
+  \draw[reportarrow, ->] (req) -- node[midway, above, font=\tiny] {提交} (gate);
+  \draw[reportarrow, ->] (gate) -- node[midway, above left, font=\tiny] {参数/权限/频率拒绝} (client);
+  \draw[reportarrow, ->] (gate) -- node[midway, right, font=\tiny] {运行时异常} (server);
+  \draw[reportarrow, ->] (gate) -- node[midway, below left, font=\tiny] {通过} (pass);
+  \draw[reportarrow, ->, dashed] (server) -- node[midway, right, font=\tiny] {降级} (client);
+\end{tikzpicture}

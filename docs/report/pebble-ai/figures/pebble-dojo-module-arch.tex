@@ -1,0 +1,21 @@
+\begin{tikzpicture}[
+  node distance=1.4cm and 1.2cm,
+  every node/.style={font=\small}
+]
+  \node[reportprocess, minimum width=2.6cm] (page) {陪练页};
+  \node[reportprocess, minimum width=2.6cm, below=of page] (store) {DojoStore};
+  \node[reportprocess, minimum width=2.6cm, below=of store] (client) {SimulatorClient};
+  \node[reportdecision, minimum width=1.4cm, minimum height=0.7cm, below=of client] (gate) {会话\\状态};
+  \node[reportprocess, minimum width=2.6cm, below left=of gate] (service) {SimulatorService};
+  \node[reportnode, minimum width=2.6cm, below right=of gate] (error) {错误\\响应};
+  \node[reportnode, minimum width=2.6cm, below=of service] (session) {SessionRepo};
+  \node[reportnode, minimum width=2.6cm, right=of service] (turn) {TurnRepo};
+
+  \draw[reportarrow] (page) -- (store);
+  \draw[reportarrow] (store) -- (client);
+  \draw[reportarrow] (client) -- (gate);
+  \draw[reportarrow] (gate) -- node[midway, above left, font=\tiny] {active} (service);
+  \draw[reportarrow] (gate) -- node[midway, above right, font=\tiny] {非法} (error);
+  \draw[reportarrow] (service) -- (session);
+  \draw[reportarrow] (service) -- (turn);
+\end{tikzpicture}

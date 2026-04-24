@@ -1,0 +1,22 @@
+\begin{tikzpicture}[
+  node distance=1.4cm and 1.2cm,
+  every node/.style={font=\small}
+]
+  \node[reportprocess, minimum width=2.6cm] (page) {翻译页};
+  \node[reportprocess, minimum width=2.6cm, below=of page] (store) {TranslatorStore};
+  \node[reportprocess, minimum width=2.6cm, below=of store] (client) {DecodeClient};
+  \node[reportdecision, minimum width=1.4cm, minimum height=0.7cm, below=of client] (gate) {校验\\门禁};
+  \node[reportprocess, minimum width=2.6cm, below left=of gate] (service) {DecodeService};
+  \node[reportnode, minimum width=2.6cm, below right=of gate] (fallback) {启发式\\降级};
+  \node[reportnode, minimum width=2.6cm, below=of service] (repo) {RelationRepo};
+  \node[reportnode, minimum width=2.6cm, right=of service] (llm) {LLM};
+
+  \draw[reportarrow] (page) -- (store);
+  \draw[reportarrow] (store) -- (client);
+  \draw[reportarrow] (client) -- (gate);
+  \draw[reportarrow] (gate) -- node[midway, above left, font=\tiny] {通过} (service);
+  \draw[reportarrow] (gate) -- node[midway, above right, font=\tiny] {降级} (fallback);
+  \draw[reportarrow] (service) -- (repo);
+  \draw[reportarrow] (service) -- (llm);
+  \draw[reportarrow] (fallback) -- (service);
+\end{tikzpicture}

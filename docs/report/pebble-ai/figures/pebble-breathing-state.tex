@@ -1,0 +1,17 @@
+\begin{tikzpicture}[
+  node distance=1.6cm and 1.8cm,
+  every node/.style={font=\small}
+]
+  \node[reportnode] (idle) {idle};
+  \node[reportnode, right=of idle] (inhale) {inhale};
+  \node[reportnode, right=of inhale] (hold) {hold};
+  \node[reportnode, right=of hold] (exhale) {exhale};
+
+  \draw[reportarrow, ->] (idle) -- node[midway, above, font=\tiny] {start} (inhale);
+  \draw[reportarrow, ->] (inhale) -- node[midway, above, font=\tiny] {timer} (hold);
+  \draw[reportarrow, ->] (hold) -- node[midway, above, font=\tiny] {timer} (exhale);
+  \draw[reportarrow, ->] (exhale) -- node[midway, below, font=\tiny] {timer} (idle);
+  \draw[reportarrow, ->, dashed, bend left=30] (inhale) to node[midway, above, font=\tiny] {pause} (idle);
+  \draw[reportarrow, ->, dashed, bend left=30] (hold) to node[midway, above, font=\tiny] {pause} (idle);
+  \draw[reportarrow, ->, dashed, bend left=30] (exhale) to node[midway, below, font=\tiny] {pause} (idle);
+\end{tikzpicture}

@@ -1,0 +1,18 @@
+\begin{tikzpicture}[
+  node distance=1.7cm and 2.1cm,
+  every node/.style={font=\small}
+]
+  \node[reportprocess, minimum width=3.2cm, minimum height=1.2cm] (usercenter) {useUserCenterStore\\selectedRelationId};
+  \node[reportprocess, minimum width=3.2cm, minimum height=1.2cm, right=of usercenter] (relation) {useRelationStore\\nodes / selectedNodeId};
+  \node[reportprocess, minimum width=3.2cm, minimum height=1.2cm, below=of usercenter] (translator) {useTranslatorStore\\input / result / status};
+  \node[reportprocess, minimum width=3.2cm, minimum height=1.2cm, below=of relation] (dojo) {useDojoStore\\session / turns / panel};
+
+  \node[reportnode, minimum width=4.4cm, minimum height=1.0cm, below=2.0cm of translator, xshift=2.1cm] (clients) {frontend clients\\decode / simulator / relation / practice};
+
+  \draw[reportarrow] (usercenter) -- node[above]{关系标识} (relation);
+  \draw[reportarrow] (usercenter) -- node[left]{上下文注入} (translator);
+  \draw[reportarrow] (relation) -- node[right]{关系数据同步} (dojo);
+  \draw[reportarrow] (translator) -- node[below left]{解码请求} (clients);
+  \draw[reportarrow] (dojo) -- node[below right]{陪练请求} (clients);
+  \draw[reportarrow] (relation) -- node[right]{关系请求} (clients);
+\end{tikzpicture}

@@ -1,0 +1,19 @@
+\begin{tikzpicture}[
+  node distance=1.8cm and 1.6cm,
+  every node/.style={font=\small}
+]
+  \node[reportnode] (input) {输入到达};
+  \node[reportdecision, right=of input] (validate) {校验与\\限流};
+  \node[reportnode, above right=of validate] (llm) {LLM 分析};
+  \node[reportnode, below right=of validate] (fallback) {启发式\\降级};
+  \node[reportnode, right=of llm] (result) {返回\\DecodeResponse};
+  \node[reportnode, below=of result] (error) {返回\\错误响应};
+
+  \draw[reportarrow, ->] (input) -- node[midway, above, font=\tiny] {提交} (validate);
+  \draw[reportarrow, ->] (validate) -- node[midway, above left, font=\tiny] {通过} (llm);
+  \draw[reportarrow, ->, dashed] (validate) -- node[midway, below left, font=\tiny] {降级} (fallback);
+  \draw[reportarrow, ->] (llm) -- node[midway, above, font=\tiny] {成功} (result);
+  \draw[reportarrow, ->, dashed] (llm) -- node[midway, right, font=\tiny] {超时/失败} (fallback);
+  \draw[reportarrow, ->] (fallback) -- node[midway, below, font=\tiny] {返回} (result);
+  \draw[reportarrow, ->] (validate) -- node[midway, left, font=\tiny] {拒绝} (error);
+\end{tikzpicture}

@@ -1,0 +1,20 @@
+\begin{tikzpicture}[
+  node distance=1.45cm and 1.1cm,
+  every node/.style={font=\small}
+]
+  \node[reportprocess, minimum width=3.6cm] (front) {前端模块\\translator / dojo / relation / practice};
+  \node[reportprocess, minimum width=3.6cm, below=of front] (api) {API 路由层\\decode / simulator / relations / practice};
+  \node[reportprocess, minimum width=3.6cm, below=of api] (service) {业务服务层\\DecodeService / SimulatorService\\RelationService / PracticeService};
+  \node[reportprocess, minimum width=3.6cm, below=of service] (repo) {仓储层\\relation / simulator / practice};
+  \node[reportprocess, minimum width=3.6cm, below=of repo] (db) {数据层\\PostgreSQL + Drizzle Schema};
+
+  \node[reportnode, minimum width=3.4cm, right=2.8cm of service] (policy) {策略组件\\rate-limit / timeout / pii};
+  \node[reportnode, minimum width=3.4cm, right=2.8cm of repo] (session) {会话组件\\guest session + auth};
+
+  \draw[reportarrow] (front) -- (api);
+  \draw[reportarrow] (api) -- (service);
+  \draw[reportarrow] (service) -- (repo);
+  \draw[reportarrow] (repo) -- (db);
+  \draw[reportarrow] (policy.west) -- (api.east);
+  \draw[reportarrow] (session.west) -- (repo.east);
+\end{tikzpicture}

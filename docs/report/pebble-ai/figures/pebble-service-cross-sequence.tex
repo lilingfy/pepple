@@ -1,0 +1,28 @@
+\begin{tikzpicture}[font=\small]
+  \node[reportnode, minimum width=1.8cm, minimum height=0.85cm] at (0, 0) {TranslatorStore};
+  \node[reportnode, minimum width=1.8cm, minimum height=0.85cm] at (2.4, 0) {UserCenterStore};
+  \node[reportnode, minimum width=1.8cm, minimum height=0.85cm] at (4.8, 0) {/api/decode};
+  \node[reportdecision, minimum width=1.4cm, minimum height=0.6cm] at (7.2, 0) {降级\\裁决};
+  \node[reportnode, minimum width=1.8cm, minimum height=0.85cm] at (9.6, 0) {RelationRepo};
+  \node[reportnode, minimum width=1.8cm, minimum height=0.85cm] at (12.0, 0) {analysis\_logs};
+
+  \foreach \x in {0,2.4,4.8,7.2,9.6,12.0} {
+    \draw[densely dashed, draw=ReportGray] (\x, -0.45) -- (\x, -9.0);
+  }
+
+  \draw[reportarrow] (0, -1.0) -- node[above, font=\tiny]{1. 读取关系标识} (2.4, -1.0);
+  \draw[reportarrow] (0, -1.7) -- node[above, font=\tiny]{2. 发送解码请求} (4.8, -1.7);
+  \draw[reportarrow] (4.8, -2.4) -- node[above, font=\tiny]{3. 校验与限流} (4.8, -2.4);
+  \draw[reportarrow] (4.8, -3.1) -- node[above, font=\tiny]{4. 调用 analyzeText} (7.2, -3.1);
+  \draw[reportarrow] (7.2, -3.8) -- node[above, font=\tiny]{5. 通过} (7.2, -3.8);
+  \draw[-{Latex[length=3mm,width=2mm]}, thick, dashed, draw=ReportBlueDark]
+    (7.2, -4.5) -- node[above, font=\tiny]{降级路径} (4.8, -4.5);
+  \draw[reportarrow] (7.2, -5.2) -- node[above, font=\tiny]{6. 按 relationId 查上下文} (9.6, -5.2);
+  \draw[-{Latex[length=3mm,width=2mm]}, thick, dashed, draw=ReportBlueDark]
+    (9.6, -5.9) -- node[above, font=\tiny]{7. 返回关系字段} (7.2, -5.9);
+  \draw[reportarrow] (7.2, -6.6) -- node[above, font=\tiny]{8. 写入元数据} (12.0, -6.6);
+  \draw[-{Latex[length=3mm,width=2mm]}, thick, dashed, draw=ReportBlueDark]
+    (7.2, -7.3) -- node[above, font=\tiny]{9. DecodeResponse} (4.8, -7.3);
+  \draw[-{Latex[length=3mm,width=2mm]}, thick, dashed, draw=ReportBlueDark]
+    (4.8, -8.0) -- node[above, font=\tiny]{10. 结果回写 Store} (0, -8.0);
+\end{tikzpicture}
