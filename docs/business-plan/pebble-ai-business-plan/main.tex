@@ -1,0 +1,898 @@
+\documentclass[UTF8,11pt,a4paper]{ctexart}
+
+% ============================================================
+% Geometry & basic packages
+% ============================================================
+\usepackage[a4paper,left=22mm,right=22mm,top=24mm,bottom=24mm,headheight=22pt]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage[table]{xcolor}
+\usepackage{etoolbox}
+\usepackage{lastpage}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,shapes.geometric,shapes.misc,backgrounds,patterns}
+\usepackage[most,raster]{tcolorbox}
+\usepackage{titlesec}
+\usepackage{titletoc}
+\usepackage{float}
+\usepackage{hyperref}
+
+% ============================================================
+% Color system (aligned with apps/web tailwind config)
+% ============================================================
+\definecolor{PebbleInk}{HTML}{1A2733}
+\definecolor{PebbleRock}{HTML}{7D8C9F}
+\definecolor{PebbleHealing}{HTML}{A8D8B9}
+\definecolor{PebbleAccent}{HTML}{BCA564}
+\definecolor{PebbleBg}{HTML}{F0F6F2}
+\definecolor{PebbleLine}{HTML}{D8E1DD}
+\definecolor{PebbleClay}{HTML}{C86F5C}
+\definecolor{PebbleMute}{HTML}{5B6573}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=PebbleRock,
+  urlcolor=PebbleRock,
+  citecolor=PebbleRock,
+  pdftitle={Pebble AI Business Plan},
+  pdfauthor={Codex},
+  pdfsubject={关系上下文驱动的 AI 情绪防御与沟通训练系统}
+}
+
+% ============================================================
+% Paragraph & list styles
+% ============================================================
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlist[itemize]{leftmargin=1.6em,itemsep=0.18em,topsep=0.25em}
+\setlist[enumerate]{leftmargin=1.8em,itemsep=0.18em,topsep=0.25em}
+\renewcommand{\arraystretch}{1.18}
+\emergencystretch=2em
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+
+% ============================================================
+% Inline tone tags
+% ============================================================
+\newcommand{\fact}[1]{\textcolor{PebbleRock}{\textbf{#1}}}
+\newcommand{\assumption}[1]{\textcolor{PebbleClay}{\textbf{#1}}}
+\newcommand{\refnum}[1]{\textsuperscript{\textcolor{PebbleAccent}{[#1]}}}
+
+% ============================================================
+% Section title styling (no chapter, compact, accented)
+% ============================================================
+\titleformat{\section}[block]
+  {\sffamily\LARGE\bfseries\color{PebbleInk}}
+  {\colorbox{PebbleAccent}{\textcolor{white}{\,\thesection\,}}}
+  {0.7em}
+  {}
+  [\vspace{0.15em}{\color{PebbleLine}\titlerule[0.6pt]}]
+\titlespacing*{\section}{0pt}{1.6em}{0.65em}
+
+\titleformat{\subsection}
+  {\sffamily\large\bfseries\color{PebbleInk}}
+  {\textcolor{PebbleAccent}{\thesubsection}}
+  {0.55em}
+  {}
+\titlespacing*{\subsection}{0pt}{1.0em}{0.35em}
+
+\titleformat{\subsubsection}
+  {\sffamily\normalsize\bfseries\color{PebbleInk}}
+  {\thesubsubsection}{0.5em}{}
+\titlespacing*{\subsubsection}{0pt}{0.8em}{0.3em}
+
+% ============================================================
+% Compact TOC (single page target)
+% ============================================================
+\setcounter{tocdepth}{1}
+\renewcommand{\contentsname}{\sffamily\color{PebbleInk}目录}
+\titlecontents{section}
+  [0pt]
+  {\addvspace{0.55em}\sffamily\bfseries\color{PebbleInk}}
+  {\textcolor{PebbleAccent}{\thecontentslabel}\hspace{1em}}
+  {\hspace{0pt}}
+  {\titlerule*[0.5pc]{\textcolor{PebbleLine}{.}}\contentspage}
+
+% ============================================================
+% Header & footer
+% ============================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\sffamily\small\color{PebbleMute}Pebble AI \textendash{} Business Plan}
+\fancyhead[R]{\sffamily\small\color{PebbleMute}\thepage\,/\,\pageref*{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{PebbleLine}\leaders\hrule height\headrulewidth\hfill}}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancypagestyle{coverpage}{
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyhead[L]{\sffamily\small\color{PebbleMute}Pebble AI \textendash{} Business Plan}
+  \fancyhead[R]{\sffamily\small\color{PebbleMute}\thepage\,/\,\pageref*{LastPage}}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\headrule}{\hbox to\headwidth{\color{PebbleLine}\leaders\hrule height\headrulewidth\hfill}}
+}
+
+% ============================================================
+% Visual components
+% ============================================================
+% Pebble brand mark — three overlapping pebbles
+\newcommand{\pebbleLogo}[1][1]{%
+  \begin{tikzpicture}[scale=#1]
+    \fill[PebbleHealing,opacity=0.92] (0,0) circle (0.42);
+    \fill[PebbleRock,opacity=0.9] (0.50,-0.12) circle (0.30);
+    \fill[PebbleAccent,opacity=0.92] (0.86,0.10) circle (0.20);
+  \end{tikzpicture}%
+}
+
+% KPI card (cover, repository facts)
+\newtcolorbox{kpicard}[2]{
+  enhanced,
+  colback=PebbleBg,
+  colframe=PebbleLine,
+  boxrule=0.4pt,
+  arc=4pt,
+  left=4pt,right=4pt,top=8pt,bottom=8pt,
+  halign=center,
+  valign=center,
+  height=22mm,
+  before upper={\sffamily\Large\bfseries\color{PebbleAccent}#1\par\vspace{2pt}\footnotesize\color{PebbleMute}#2},
+}
+
+% Investment snapshot cell (6-grid)
+\newtcolorbox{snapshotcell}[1]{
+  enhanced,
+  width=\linewidth,
+  colback=white,
+  colframe=PebbleLine,
+  boxrule=0.5pt,
+  arc=4pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,
+  fontupper=\small\color{PebbleInk},
+  before upper={%
+    {\sffamily\bfseries\color{PebbleAccent}#1}\par
+    \vspace{2pt}{\color{PebbleLine}\hrule height 0.5pt}\vspace{4pt}%
+  },
+}
+
+% Key finding callout (left bar)
+\newtcolorbox{keyfinding}{
+  enhanced,
+  colback=PebbleBg,
+  colframe=PebbleAccent,
+  boxrule=0pt,
+  leftrule=3pt,
+  arc=2pt,
+  left=10pt,right=10pt,top=6pt,bottom=6pt,
+  fontupper=\small\color{PebbleInk},
+}
+
+% Team placeholder card
+\newtcolorbox{teamcard}[2]{
+  enhanced,
+  width=\linewidth,
+  colback=white,
+  colframe=PebbleLine,
+  boxrule=0.5pt,
+  arc=4pt,
+  left=8pt,right=8pt,top=8pt,bottom=8pt,
+  fontupper=\small\color{PebbleInk},
+  before upper={%
+    {\sffamily\bfseries\color{PebbleInk}#1}\par
+    {\footnotesize\color{PebbleAccent}#2}\par
+    \vspace{3pt}{\color{PebbleLine}\hrule height 0.5pt}\vspace{5pt}%
+  },
+}
+
+% Header style for tables
+\newcommand{\thbg}[1]{\textcolor{PebbleInk}{\textbf{#1}}}
+\renewcommand{\arraystretch}{1.22}
+
+\begin{document}
+
+% ============================================================
+% COVER PAGE
+% ============================================================
+\begin{titlepage}
+\thispagestyle{coverpage}
+
+\vspace*{8mm}
+
+\noindent
+\begin{minipage}[t]{0.55\textwidth}
+  \pebbleLogo[2.6]
+\end{minipage}\hfill
+\begin{minipage}[t]{0.42\textwidth}
+  \raggedleft
+  \sffamily\small\color{PebbleMute}
+  融资与战略讨论稿\quad\textbar\quad v1.0\\[2pt]
+  2026-05-09\\[2pt]
+  作者：Codex
+\end{minipage}
+
+\vspace{30mm}
+
+{\fontsize{40}{48}\selectfont\sffamily\bfseries\color{PebbleInk}Pebble AI}
+
+\vspace{6mm}
+{\fontsize{22}{28}\selectfont\sffamily\color{PebbleInk}商业计划书}
+
+\vspace{12mm}
+{\Large\color{PebbleMute}关系上下文驱动的 AI 情绪防御与沟通训练系统}
+
+\vspace{16mm}
+{\color{PebbleAccent}\rule{0.32\textwidth}{1.6pt}}
+
+\vspace{10mm}
+\begin{minipage}{0.95\textwidth}
+\setlength{\parskip}{0pt}
+\large\itshape\color{PebbleInk}
+帮助处于高压人际互动中的用户，在三分钟内完成理解、稳定、回应与复盘，逐步建立可持续的沟通边界。
+\end{minipage}
+
+\vfill
+
+\begin{tcbraster}[raster columns=4, raster equal height, raster column skip=3mm]
+  \begin{kpicard}{¥300--500万}{建议天使轮口径}\end{kpicard}
+  \begin{kpicard}{8\,/\,9\,/\,50}{API · 表 · 测试文件}\end{kpicard}
+  \begin{kpicard}{¥175.2亿}{2030 心理 App 市场（USD）}\end{kpicard}
+  \begin{kpicard}{18 个月}{至下一融资里程碑}\end{kpicard}
+\end{tcbraster}
+
+\vspace{6mm}
+\begin{center}
+  {\sffamily\footnotesize\color{PebbleMute}本计划书内含建议假设，融资口径、收入预测与里程碑均为情景估计，不代表已发生收入或已签约融资。}
+\end{center}
+
+\end{titlepage}
+
+% ============================================================
+% INVESTMENT SNAPSHOT (1-page 30-second read)
+% ============================================================
+\thispagestyle{plain}
+
+\vspace*{-2mm}
+{\sffamily\Large\bfseries\color{PebbleInk}投资摘要}\quad{\sffamily\color{PebbleMute}\small Investment Snapshot}
+
+\vspace{2mm}
+{\color{PebbleAccent}\rule{\textwidth}{1pt}}
+\vspace{4mm}
+
+{\small\color{PebbleMute}用 30 秒了解 Pebble：六个角度，每格一句结论。}
+\vspace{4mm}
+
+\noindent
+\begin{minipage}[t]{0.31\textwidth}
+\begin{snapshotcell}{Problem 问题}
+处于伴侣、父母、上级或前任纠缠等高压人际语境的用户，在被一句话击中时缺少快速理解潜台词、稳定情绪、低冲突回应的连续工具。
+\end{snapshotcell}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.31\textwidth}
+\begin{snapshotcell}{Solution 方案}
+读心翻译、急救呼吸、灰岩回应、模拟陪练与关系档案构成同一条闭环；用户在三分钟内从混乱回到可暂停、可回应、可复盘的状态。
+\end{snapshotcell}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.31\textwidth}
+\begin{snapshotcell}{Why Now 时机}
+通用 AI 已普及但缺克制；2025 年 FTC 启动伴侣聊天调查、WHO 发布健康 AI 治理指引——市场需要边界更清楚、任务更明确的沟通防御工具。
+\end{snapshotcell}
+\end{minipage}
+
+\vspace{3mm}
+
+\noindent
+\begin{minipage}[t]{0.31\textwidth}
+\begin{snapshotcell}{Market 市场}
+全球 mental health apps 2024 \$74.8B$\to$2030 \$175.2B；digital mental health 2025 \$275.5B$\to$2030 \$586.7B。Pebble 切入「AI 沟通防御与训练」中文细分。
+\end{snapshotcell}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.31\textwidth}
+\begin{snapshotcell}{Traction 进度}
+仓库内已交付 \fact{8} 个 API 路由、\fact{9} 张数据库表、\fact{50} 个测试文件、\fact{293} 条测试声明、\fact{4} 个活跃 OpenSpec 变更——具备 MVP 内测基础。
+\end{snapshotcell}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.31\textwidth}
+\begin{snapshotcell}{Ask 融资}
+\assumption{¥300--500 万}天使轮，覆盖 12--18 个月 runway。资金主要用于安全治理、付费转化验证、与高风险内容升级机制建设。
+\end{snapshotcell}
+\end{minipage}
+
+\vspace{6mm}
+\begin{keyfinding}
+\textbf{关键判断：}Pebble 不应被定位为泛心理疗愈应用，也不应被包装为 AI 治疗师。最可取的商业定位是「关系上下文驱动的沟通防御与训练系统」——这一定位同时避开医疗诊断高风险边界，并保留订阅、训练课程、企业员工支持与专业渠道的扩展空间。
+\end{keyfinding}
+
+\clearpage
+
+% ============================================================
+% TABLE OF CONTENTS
+% ============================================================
+\thispagestyle{plain}
+\tableofcontents
+\clearpage
+
+% ============================================================
+% 1. EXECUTIVE SUMMARY
+% ============================================================
+\section{执行摘要}
+
+\subsection{一句话结论}
+
+Pebble AI 是一个面向高压人际互动的 AI 沟通防御助手。它把读心翻译、模拟陪练、急救呼吸与关系档案组织为同一条闭环，使用户在受到指责、操控、纠缠或情绪投射时，能够先稳住状态，再理解潜台词，最后生成低冲突回应并沉淀长期策略。
+
+\subsection{商业判断}
+
+本计划书的核心判断是：Pebble 不应被定位为泛心理疗愈应用，也不应被包装为 AI 治疗师。更可取的商业定位是「关系上下文驱动的沟通防御与训练系统」。这一定位使 Pebble 同时避开医疗诊断高风险边界，并保留面向订阅、训练课程、企业员工支持和专业合作渠道的商业扩展空间。
+
+当前仓库已经形成可验证的产品骨架：\fact{8 个 API 路由模板、9 张核心数据库表、50 个测试文件、293 条测试声明与 4 个活跃 OpenSpec 变更}。这些事实表明 Pebble 已越过纯概念阶段，具备进入 MVP 内测、转化漏斗验证与融资材料准备的基础。
+
+\subsection{投资叙事}
+
+顶级商业计划书的核心不是堆叠功能，而是让读者快速判断四件事：问题是否重要，方案是否独特，市场是否足够大，团队是否能用资本换取下一个可融资里程碑。Sequoia 的商业计划书框架强调公司目的、问题、方案、为什么现在、市场、竞争、商业模式、团队、财务与五年愿景\refnum{1}；YC 的融资建议强调产品、客户、市场机会、增长速度和明确融资用途\refnum{2}。本计划书以这两组约束作为结构骨架，并把 Pebble 的当前代码事实、PRD 目标与市场资料分层呈现。
+
+\subsection{建议融资口径}
+
+若本计划书用于天使轮或种子前轮沟通，建议采用\assumption{人民币 300 万至 500 万}的融资口径，覆盖 12--18 个月 runway。资金用途不应平均撒向所有功能，而应集中支持三项可证伪里程碑：第一，完成安全边界清晰的 MVP 内测；第二，验证付费转化与次月留存；第三，建立合规、隐私与高风险内容升级机制。该融资口径是本计划书的建议假设，不代表项目已经完成融资或已有收入。
+
+% ============================================================
+% 2. PROBLEM, CUSTOMER, WHY NOW
+% ============================================================
+\section{问题、客户与为什么现在}
+
+\subsection{用户痛点}
+
+Pebble 面向的核心用户不是一般意义上的「想聊天的人」，而是在特定关系中反复遭遇语言压力、情绪操控、边界侵犯或高冲突互动的人。用户的真实任务通常不是获得一段温暖安慰，而是在有限时间内回答三个问题：
+
+\begin{itemize}
+  \item 对方这句话表面上说了什么，实际在施加什么压力。
+  \item 我现在是否已经进入情绪淹没状态，是否应该先暂停回应。
+  \item 如果必须回应，什么表达能降低冲突、保留边界，并避免进入辩解循环。
+\end{itemize}
+
+现有通用聊天机器人可以生成解释，冥想应用可以提供安抚，传统心理内容可以解释概念，但它们通常没有把「关系上下文、当下话语、回应训练与事后复盘」组织成连续产品链路。Pebble 的切入点正是这个断裂处。
+
+\subsection{目标客户}
+
+本计划书将目标客户分成三层。第一层是高频 C 端用户：正在经历伴侣、父母、职场上级或前任纠缠压力的人。第二层是训练型用户：并非处于即时危机，但希望通过场景训练提升边界表达能力的人。第三层是渠道型客户：咨询师、教练、女性成长社群、员工援助项目与情绪健康服务机构，它们需要一个可控、非诊断、低门槛的练习工具。
+
+\begin{table}[htbp]
+\small
+\caption{Pebble 的目标客户分层}
+\centering
+\begin{tabularx}{\textwidth}{>{\bfseries\color{PebbleInk}}p{2.4cm}YYY}
+\toprule
+\rowcolor{PebbleBg}\thbg{客户层} & \thbg{典型场景} & \thbg{购买动机} & \thbg{初期验证指标} \\
+\midrule
+高压即时用户 & 收到指责、威胁、道德绑架或反复纠缠信息 & 需要低摩擦回应建议与短时稳定支持 & 首次解码完成率、回复复制率、三分钟内完成率 \\
+训练型用户 & 想练习灰岩法、边界表达与低冲突沟通 & 需要可重复陪练与复盘记录 & 每周训练次数、模拟得分提升、收藏练习条目数 \\
+渠道型客户 & 社群、咨询师、员工支持项目 & 需要可控的辅助训练工具，而非医疗替代品 & 试点转化率、机构复购率、人工转介比例 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{为什么现在}
+
+Pebble 的「为什么现在」由三条趋势共同支撑。
+
+\textbf{第一，用户已经习惯把情绪支持、写作建议和沟通建议交给 AI}，但高风险人际语境仍缺少足够克制的产品边界。
+
+\textbf{第二，数字心理健康市场持续增长，市场教育成本正在下降}。Grand View Research 估计全球 mental health apps 市场 2024 年为 74.8 亿美元，并预测 2030 年达到 175.2 亿美元，2025--2030 年复合增长率为 14.6\%\refnum{4}；Research and Markets 的 2026 报告也将 digital mental health 市场从 2025 年 275.5 亿美元预测至 2026 年 320.6 亿美元，并预测 2030 年达到 586.7 亿美元\refnum{5}。
+
+\textbf{第三，监管与社会关注正在倒逼产品采用更严格的安全治理}。FTC 在 2025 年对消费级 AI 伴侣聊天机器人发起调查，关注企业如何测试、监控和缓解对儿童与青少年的潜在负面影响\refnum{6}；WHO 也在 2025 年发布关于健康领域大模型伦理与治理的指导，明确生成式 AI 在健康语境中的治理要求\refnum{7}。因此，Pebble 的机会不是「更像治疗师」，而是做一个边界更清楚、数据更克制、任务更明确的沟通防御工具。
+
+% ============================================================
+% 3. PRODUCT
+% ============================================================
+\section{产品方案}
+
+\subsection{产品定义}
+
+Pebble 的产品定义是：以关系上下文为解释中心的 AI 情绪防御与沟通训练系统。它把用户从「被一句话击中后的混乱状态」带到「可理解、可暂停、可回应、可复盘」的状态。
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=12mm,
+  box/.style={draw=PebbleLine, fill=PebbleBg, rounded corners=8pt, align=center, minimum width=32mm, minimum height=14mm, font=\small},
+  arrow/.style={-Latex, thick, draw=PebbleRock}
+]
+  \node[box] (decode) {读心翻译\\\footnotesize 潜台词与风险};
+  \node[box, right=of decode] (breath) {急救呼吸\\\footnotesize 先稳态};
+  \node[box, right=of breath] (reply) {灰岩回应\\\footnotesize 低冲突表达};
+  \node[box, below=of breath] (dojo) {模拟陪练\\\footnotesize 重复训练};
+  \node[box, below=of reply] (memory) {关系档案\\\footnotesize 长期复盘};
+  \draw[arrow] (decode) -- (breath);
+  \draw[arrow] (breath) -- (reply);
+  \draw[arrow] (reply) -- (memory);
+  \draw[arrow] (memory) -- (dojo);
+  \draw[arrow] (dojo) -- (decode);
+  \node[draw=PebbleAccent, rounded corners=10pt, fit=(decode)(breath)(reply)(dojo)(memory), inner sep=5mm, label={[text=PebbleAccent,font=\small]above:关系上下文闭环}] {};
+\end{tikzpicture}
+\caption{Pebble 的产品闭环：理解、稳态、回应、训练与关系记忆形成回流。}
+\end{figure}
+
+\subsection{核心模块}
+
+\begin{table}[htbp]
+\small
+\caption{产品模块、用户价值与实现状态}
+\centering
+\begin{tabularx}{\textwidth}{p{2.5cm}p{3cm}YY}
+\toprule
+\rowcolor{PebbleBg}\thbg{模块} & \thbg{用户任务} & \thbg{当前能力} & \thbg{商业意义} \\
+\midrule
+读心翻译器 & 快速理解对方话语中的潜台词、攻击类型与回应空间 & 已有 \texttt{/translator} 页面、\texttt{/api/decode} 路由、PII 脱敏、限流、超时与启发式降级 & 首次价值触达点，承担转化漏斗入口 \\
+模拟陪练场 & 在安全场景中练习低冲突回应 & 已有 \texttt{/dojo} 页面、场景目录、会话推进、轮次记录与反馈卡片 & 提高留存与训练频次，支撑订阅价值 \\
+急救呼吸 & 情绪过载时暂停回复并完成短时稳定 & 已有 \texttt{/breathing} 页面、4-7-8 呼吸状态机、倒计时与暂停重置 & 降低高风险即时回应，强化产品信任 \\
+关系档案 & 维护关系对象、互动背景与长期洞察条件 & 已有关系表、关系页面、当前关系选择与持久化状态 & 构成数据壁垒与个性化基础 \\
+练习沉淀 & 保存解码或陪练结果，便于复盘与收藏 & 已有 practice API 与数据库表 & 形成从一次性使用到长期资产的转化 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{设计原则}
+
+Pebble 的产品原则可以压缩为四条。\textbf{第一，关系上下文优先：}同一句话在伴侣、父母、同事和上级场景中有不同含义。\textbf{第二，先稳定后回应：}用户处于情绪淹没时，分析和建议都必须让位于短时稳定。\textbf{第三，去诊断化表达：}系统描述行为线索与互动风险，不给关系对象贴医学或人格标签。\textbf{第四，用户主权：}系统提供建议、练习和记录，但不替用户做现实关系决策。
+
+% ============================================================
+% 4. TECH & DELIVERABLE
+% ============================================================
+\section{技术与可交付状态}
+
+\subsection{架构概览}
+
+当前 Pebble 采用 Next.js + TypeScript + Tailwind CSS 的全栈 Web 架构，服务端通过 Next.js Route Handlers 承接 BFF 职责，数据层采用 PostgreSQL + Drizzle ORM。前端状态由多个 Zustand store 管理，核心业务包括解码、模拟、关系、练习与用户中心。
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  layer/.style={draw=PebbleLine, fill=white, rounded corners=6pt, minimum width=0.78\textwidth, minimum height=10mm, align=center, font=\small},
+  arrow/.style={-Latex, draw=PebbleRock, thick}
+]
+  \node[layer, fill=PebbleBg] (ui) {交互层：首页 / 翻译器 / 陪练场 / 呼吸页 / 关系与个人中心};
+  \node[layer, below=4mm of ui] (state) {状态层：Translator Store / Dojo Store / Relation Store / User Center Store};
+  \node[layer, below=4mm of state] (client) {前端调用层：decode / simulator / relation / practice clients};
+  \node[layer, below=4mm of client] (api) {接口层：8 个 Route Handlers，含校验、限流、错误映射};
+  \node[layer, below=4mm of api] (service) {业务层：DecodeService / SimulatorService / RelationService / PracticeService};
+  \node[layer, below=4mm of service, fill=PebbleBg] (data) {数据与资源层：9 张表、匿名会话、关系档案、练习沉淀、分析日志};
+  \draw[arrow] (ui) -- (state);
+  \draw[arrow] (state) -- (client);
+  \draw[arrow] (client) -- (api);
+  \draw[arrow] (api) -- (service);
+  \draw[arrow] (service) -- (data);
+\end{tikzpicture}
+\caption{Pebble 当前系统分层。}
+\end{figure}
+
+\subsection{仓库事实}
+
+截至本计划书生成时，源码层可直接观察到以下基线指标：
+
+\vspace{2mm}
+\begin{tcbraster}[raster columns=4, raster equal height, raster column skip=3mm]
+  \begin{kpicard}{8}{API 路由模板}\end{kpicard}
+  \begin{kpicard}{9}{核心数据库表}\end{kpicard}
+  \begin{kpicard}{50}{测试文件}\end{kpicard}
+  \begin{kpicard}{293}{测试声明}\end{kpicard}
+\end{tcbraster}
+
+\vspace{2mm}
+\begin{table}[htbp]
+\small
+\caption{仓库基线证据来源}
+\centering
+\begin{tabularx}{\textwidth}{p{3.6cm}p{2cm}Y}
+\toprule
+\rowcolor{PebbleBg}\thbg{指标} & \thbg{当前值} & \thbg{证据来源} \\
+\midrule
+API 路由模板数 & 8 & \texttt{apps/web/app/api/**/route.ts} \\
+数据库核心表数 & 9 & \texttt{apps/web/lib/db/schema.ts} 中 \texttt{pgTable(...)} 定义 \\
+测试文件总数 & 50 & \texttt{apps/web/tests/**/*.test.ts(x)} \\
+测试声明总数 & 293 & \texttt{rg "\textbackslash b(it|test)\textbackslash (" apps/web/tests} 统计 \\
+活跃 OpenSpec 变更数 & 4 & \texttt{openspec/changes/*}，排除 \texttt{archive} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{MVP 缺口}
+
+Pebble 当前不是「已规模化商业产品」，而是具备 MVP 骨架的早期项目。融资前必须优先闭合四类缺口：后端会话持久化关键路径测试、OpenAPI 与实现一致性、\texttt{panic\_sessions} 运行时写入、核心用户旅程 E2E 测试。这些缺口不会否定商业机会，但会决定内测、发布与融资材料中可以承诺的边界。
+
+% ============================================================
+% 5. MARKET & COMPETITION
+% ============================================================
+\section{市场与竞争}
+
+\subsection{市场入口}
+
+Pebble 的可进入市场不是整个心理健康市场，而是其中更窄的「AI 支持的沟通防御、边界训练与情绪稳定」子场景。采用底层市场口径时，全球 mental health apps 与 digital mental health 市场均显示增长；采用实际切入市场口径时，Pebble 应先聚焦中文用户中的高冲突沟通场景，再扩展到泛关系训练与机构渠道。
+
+\begin{table}[htbp]
+\small
+\caption{市场口径与 Pebble 的进入方式}
+\centering
+\begin{tabularx}{\textwidth}{p{4cm}YY}
+\toprule
+\rowcolor{PebbleBg}\thbg{市场层级} & \thbg{外部规模信号} & \thbg{Pebble 的进入策略} \\
+\midrule
+Digital mental health & 2025 年约 275.5 亿美元，2030 年预测 586.7 亿美元 & 作为宏观需求与资本关注背景，不直接声称可获得全部市场 \\
+Mental health apps & 2024 年约 74.8 亿美元，2030 年预测 175.2 亿美元 & 作为移动端订阅和健康应用付费习惯参考 \\
+AI 沟通防御与训练 & 尚无稳定公开分类 & 以中文高冲突沟通和灰岩回应训练切入，先做细分品类心智 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{竞争格局}
+
+Pebble 的竞争对手可分为四类：通用 AI 聊天工具、冥想与心理健康 App、关系咨询或课程社群、专业心理咨询服务。Pebble 不应在所有维度上与这些产品正面对抗，而应利用任务边界形成差异化：它不做泛聊天，不做医学治疗，不做单纯内容课程，而做「具体关系语境下的即时理解与训练」。
+
+\begin{table}[htbp]
+\small
+\caption{竞争替代方案与 Pebble 差异化}
+\centering
+\begin{tabularx}{\textwidth}{p{3.2cm}YY}
+\toprule
+\rowcolor{PebbleBg}\thbg{替代方案} & \thbg{用户为何会选择它} & \thbg{Pebble 的差异化打法} \\
+\midrule
+通用 AI 聊天工具 & 免费或低价，能生成解释和回复 & 提供关系档案、灰岩法约束、安全降级和练习沉淀 \\
+冥想 / 心理健康 App & 安抚体验成熟，品牌可信 & 从「情绪舒缓」转向「具体话语应对与边界训练」 \\
+关系课程与社群 & 有陪伴感和内容体系 & 把课程概念转化为即时工具、模拟训练与个人复盘 \\
+心理咨询服务 & 专业性强，适合深度支持 & 做低门槛、非诊断、可转介的前置支持工具 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{护城河}
+
+Pebble 的可积累壁垒包括四类。\textbf{第一，关系上下文数据：}用户持续维护的关系对象、互动历史和练习记录会提升迁移成本。\textbf{第二，安全与边界语料：}高风险内容识别、非诊断表达和灰岩回应约束可形成产品治理能力。\textbf{第三，场景库与评分体系：}催婚、借钱、指责、纠缠、职场压迫等场景可以逐步沉淀为训练资产。\textbf{第四，品牌心智：}若 Pebble 能成为「不要立刻回复，先问 Pebble」的用户习惯，则会获得强入口价值。
+
+% ============================================================
+% 6. BUSINESS MODEL
+% ============================================================
+\section{商业模式}
+
+\subsection{收入结构}
+
+Pebble 的商业模式应保持简单。YC 的 pitch 建议强调不要同时塞入过多商业模式，而要拥有一个清晰可解释的收入逻辑\refnum{3}。因此，本计划书建议以 C 端订阅为主，以专业渠道和企业合作为第二曲线。
+
+\begin{table}[htbp]
+\small
+\caption{建议收入结构}
+\centering
+\begin{tabularx}{\textwidth}{p{2.8cm}p{3.2cm}Y}
+\toprule
+\rowcolor{PebbleBg}\thbg{收入线} & \thbg{建议价格} & \thbg{说明} \\
+\midrule
+免费层 & 0 元 & 每日少量解码、基础呼吸、有限场景；目标是降低首次体验门槛 \\
+Pro 订阅 & \assumption{29 元/月或 199 元/年} & 更多解码额度、完整陪练、关系档案、练习本与复盘 \\
+专项训练包 & \assumption{49--99 元/包} & 催婚、借钱、职场压迫、亲密关系冲突等垂直场景包 \\
+专业渠道授权 & \assumption{按席位或项目计费} & 面向咨询师、社群、EAP 与机构试点，强调非诊断辅助工具 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{单位经济模型}
+
+早期最重要的单位经济不是宏大收入预测，而是验证每个付费用户是否能覆盖模型调用、存储、支付、客服和获客成本。建议采用以下最小监控指标：
+
+\begin{itemize}
+  \item 每月活跃付费用户 ARPPU
+  \item 单用户模型调用成本
+  \item 7 日 / 30 日留存
+  \item 免费转付费率
+  \item 退款率
+  \item 高风险人工处理成本
+\end{itemize}
+
+% ============================================================
+% 7. GROWTH & CHANNELS
+% ============================================================
+\section{增长与渠道}
+
+\subsection{早期增长路径}
+
+Pebble 的早期增长不应依赖泛流量投放。更合理的路径是从高痛点社区、内容教育和工具化分享开始。用户收到一条令人不适的话后，最强需求发生在即时场景；因此产品入口应围绕「复制一句话，三分钟内得到低冲突回应」建立。
+
+\begin{enumerate}
+  \item \textbf{冷启动：}面向中文社交平台输出高冲突沟通案例拆解，推动用户保存工具。
+  \item \textbf{内测：}邀请关系成长社群、女性安全社群、职场沟通社群进行封闭测试。
+  \item \textbf{转化：}用每日免费解码和完整陪练订阅形成免费到付费路径。
+  \item \textbf{扩展：}与咨询师、教练、EAP 供应商合作，把 Pebble 作为课后练习与低风险自助工具。
+\end{enumerate}
+
+\subsection{增长飞轮}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  stepbox/.style={draw=PebbleLine, fill=PebbleBg, rounded corners=8pt, align=center, minimum width=30mm, minimum height=12mm, font=\small},
+  arrow/.style={-Latex, draw=PebbleRock, thick}
+]
+  \node[stepbox] (case) {真实案例\\\footnotesize 内容触达};
+  \node[stepbox, right=14mm of case] (decode) {即时解码\\\footnotesize 首次价值};
+  \node[stepbox, below=11mm of decode] (save) {保存练习\\\footnotesize 关系档案};
+  \node[stepbox, left=14mm of save] (train) {陪练提升\\\footnotesize 订阅理由};
+  \node[stepbox, below=11mm of train] (share) {匿名模板\\\footnotesize 低风险分享};
+  \draw[arrow] (case) -- (decode);
+  \draw[arrow] (decode) -- (save);
+  \draw[arrow] (save) -- (train);
+  \draw[arrow] (train) -- (share);
+  \draw[arrow] (share.west) .. controls +(-22mm,6mm) and +(-20mm,-10mm) .. (case.west);
+\end{tikzpicture}
+\caption{Pebble 早期增长飞轮。}
+\end{figure}
+
+% ============================================================
+% 8. ROADMAP
+% ============================================================
+\section{路线图与里程碑}
+
+\subsection{18 个月路线图}
+
+\begin{table}[htbp]
+\small
+\caption{建议产品路线图}
+\centering
+\begin{tabularx}{\textwidth}{p{2.4cm}p{2.4cm}YY}
+\toprule
+\rowcolor{PebbleBg}\thbg{阶段} & \thbg{时间} & \thbg{关键交付} & \thbg{通过标准} \\
+\midrule
+MVP 内测 & 0--3 个月 & 翻译器、陪练、呼吸、关系档案、练习本闭环；E2E 冒烟测试；安全提示与高风险升级策略 & 100 名种子用户；首次解码完成率 \textgreater{} 70\%；高风险文本有明确升级响应 \\
+付费验证 & 4--6 个月 & Pro 订阅、额度系统、场景包、基础数据看板 & 免费转付费率达 3\%--5\%；7 日留存 \textgreater{} 25\% \\
+场景扩展 & 7--12 个月 & 10 个以上高冲突场景包；关系复盘摘要；咨询师试点后台 & 付费用户超过 3000；机构试点 5 家以上 \\
+渠道化增长 & 13--18 个月 & EAP / 社群 / 咨询师授权模型；安全审计与隐私治理文档 & 月经常性收入达可支撑核心团队水平；形成下一轮融资指标 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{当前优先级}
+
+从第一性原理看，Pebble 的下一步不是扩写更多功能，而是验证「用户是否愿意为更稳的回应和训练付费」。因此，工程优先级应服从商业验证：补齐测试与安全边界，开放小规模内测，采集转化漏斗，再决定是否扩展复杂洞察功能。
+
+% ============================================================
+% 9. FINANCIALS
+% ============================================================
+\section{财务计划}
+
+\subsection{关键假设}
+
+以下财务预测是\assumption{计划假设}，不是已发生收入。所有数值用于说明商业模型如何运行，正式融资前需用真实内测数据替换。
+
+\begin{itemize}
+  \item Pro 订阅价格：29 元/月，年付折算 16.6 元/月。
+  \item 第一年以中文 C 端为主，机构收入仅作为试点。
+  \item 模型与基础设施成本随使用增长下降，目标是把直接服务成本控制在收入的 15\% 以内。
+  \item 获客主要依赖内容与社群，前 12 个月不采用高强度买量。
+\end{itemize}
+
+\subsection{三年预测}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar stacked,
+  width=0.85\textwidth,
+  height=58mm,
+  bar width=22pt,
+  symbolic x coords={第一年,第二年,第三年},
+  xtick=data,
+  ymin=0, ymax=3700,
+  ytick={0,1000,2000,3000},
+  ylabel={\footnotesize 收入（万元）},
+  ylabel style={color=PebbleMute},
+  xticklabel style={color=PebbleInk,font=\small},
+  yticklabel style={color=PebbleMute,font=\footnotesize},
+  legend style={
+    at={(0.5,-0.18)}, anchor=north,
+    legend columns=3, draw=none, font=\small,
+    column sep=1.2em
+  },
+  axis lines=left,
+  axis line style={color=PebbleLine},
+  enlarge x limits=0.35,
+  tick style={color=PebbleLine},
+]
+\addplot[fill=PebbleRock, draw=none] coordinates {(第一年,80) (第二年,620) (第三年,2100)};
+\addplot[fill=PebbleHealing, draw=none] coordinates {(第一年,12) (第二年,120) (第三年,360)};
+\addplot[fill=PebbleAccent, draw=none] coordinates {(第一年,20) (第二年,260) (第三年,900)};
+\legend{订阅, 场景包, 渠道/机构}
+\end{axis}
+\end{tikzpicture}
+\caption{三年收入构成情景（建议假设）。}
+\end{figure}
+
+\begin{table}[htbp]
+\small
+\caption{三年财务预测情景，单位：人民币万元}
+\centering
+\begin{tabularx}{\textwidth}{p{3cm}rrrY}
+\toprule
+\rowcolor{PebbleBg}\thbg{项目} & \thbg{第一年} & \thbg{第二年} & \thbg{第三年} & \thbg{主要驱动} \\
+\midrule
+订阅收入 & 80 & 620 & 2100 & 付费用户从早期内测扩展至规模化订阅 \\
+场景包收入 & 12 & 120 & 360 & 垂直训练包与一次性购买 \\
+渠道/机构收入 & 20 & 260 & 900 & 咨询师、社群与 EAP 试点扩展 \\
+\rowcolor{PebbleBg}\textbf{总收入} & \textbf{112} & \textbf{1000} & \textbf{3360} & C 端订阅为主，B 端渠道为辅 \\
+直接服务成本 & 25 & 145 & 430 & 模型、存储、短信、支付与客服 \\
+研发与运营支出 & 280 & 650 & 1350 & 小团队研发、安全治理、内容与增长 \\
+\rowcolor{PebbleBg}\textbf{经营利润} & \textbf{-193} & \textbf{205} & \textbf{1580} & 第二年进入经营正向情景 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{融资用途}
+
+建议天使轮资金按以下比例使用，购买完成三项证据所需的时间——用户留存、付费意愿、风险可控：
+
+\vspace{2mm}
+\begin{tcbraster}[raster columns=4, raster equal height, raster column skip=3mm]
+  \begin{kpicard}{45\%}{工程与安全治理}\end{kpicard}
+  \begin{kpicard}{25\%}{产品与设计}\end{kpicard}
+  \begin{kpicard}{20\%}{内容增长与用户研究}\end{kpicard}
+  \begin{kpicard}{10\%}{法务/隐私/应急储备}\end{kpicard}
+\end{tcbraster}
+
+\vspace{1mm}
+{\footnotesize\color{PebbleMute}融资不是为了提前扩张团队，而是为了购买足够时间完成三项证据。}
+
+% ============================================================
+% 10. TEAM (NEW — placeholder structure for top-tier BP)
+% ============================================================
+\section{团队}
+
+Pebble 当前以小型核心团队推进 MVP 与商业验证。顶级商业计划书的「团队」环节应当回答：为什么是我们做这件事、技能组合是否匹配「关系语境 + AI + 安全治理」三条主线、关键岗位与顾问网络如何配置。下方为推荐填入结构，待用户在最终对外版本中替换为真实履历。
+
+\vspace{2mm}
+\noindent
+\begin{minipage}[t]{0.31\textwidth}
+\begin{teamcard}{[ 创始人姓名 ]}{创始人 / CEO}
+\textbf{核心职责：}产品方向、融资、合规边界。\\
+\textbf{相关履历：}AI 产品 / 心理学 / 沟通训练相关 5--10 年经验（待填）。\\
+\textbf{为什么是 TA：}与用户痛点的第一手连接、对边界感的高度敏感（待填）。
+\end{teamcard}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.31\textwidth}
+\begin{teamcard}{[ 联合创始人姓名 ]}{CTO / 工程负责人}
+\textbf{核心职责：}全栈架构、AI 调用治理、数据安全。\\
+\textbf{相关履历：}全栈 + LLM 工程化 / 安全 / 高并发后端经验（待填）。\\
+\textbf{为什么是 TA：}能把"克制 AI"变成可工程化的限流、降级与审计机制（待填）。
+\end{teamcard}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.31\textwidth}
+\begin{teamcard}{[ 联合创始人姓名 ]}{设计 / 用户研究负责人}
+\textbf{核心职责：}交互设计、内容护栏、用户研究。\\
+\textbf{相关履历：}消费级产品体验 / 服务设计 / 内容审查策略经验（待填）。\\
+\textbf{为什么是 TA：}懂得在三分钟内完成"理解\,$\to$\,稳态\,$\to$\,回应"的体验编排（待填）。
+\end{teamcard}
+\end{minipage}
+
+\vspace{4mm}
+\begin{keyfinding}
+\textbf{顾问与合作伙伴（待填）：}建议补充 1--2 名持证心理咨询师、1 名隐私 / 法务顾问、1--2 名渠道合作机构（女性社群 / EAP / 教练社区）。这些位置不必在本轮全部填满，但应在融资沟通时给出可信预期。
+\end{keyfinding}
+
+% ============================================================
+% 11. RISK & COMPLIANCE
+% ============================================================
+\section{风险治理}
+
+\subsection{主要风险}
+
+Pebble 的最高风险不是模型调用失败，而是用户把产品误认为心理诊断或治疗服务。因此，商业化必须把安全与边界放在产品增长之前。
+
+\begin{table}[htbp]
+\small
+\caption{风险与治理策略}
+\centering
+\begin{tabularx}{\textwidth}{p{2.6cm}p{1.6cm}YY}
+\toprule
+\rowcolor{PebbleBg}\thbg{风险} & \thbg{等级} & \thbg{影响} & \thbg{治理策略} \\
+\midrule
+医疗化误读 & {\color{PebbleClay}\textbf{高}} & 用户将建议当作专业诊断或治疗 & 明确非医疗声明；高风险文本升级；避免人格诊断标签 \\
+情绪依赖 & {\color{PebbleClay}\textbf{高}} & 用户过度依赖 AI 回应现实关系 & 设计使用频率提示、人工支持转介和自我决策提示 \\
+隐私泄露 & {\color{PebbleClay}\textbf{高}} & 关系档案和对话内容高度敏感 & PII 脱敏、最小化采集、删除权、加密和访问控制 \\
+模型幻觉 & {\color{PebbleAccent}\textbf{中}} & 输出错误建议或激化矛盾 & 灰岩法模板约束、拒绝反击建议、启发式 fallback 和审核样本集 \\
+增长失焦 & {\color{PebbleAccent}\textbf{中}} & 从沟通防御滑向泛陪伴聊天 & 固定产品边界，保持任务型入口和非拟人化表达 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{合规定位}
+
+Pebble 的合规定位应当是「情绪健康与沟通训练辅助工具」，不是心理治疗、诊断、危机干预或医疗器械。产品可提供安全提示与紧急资源入口，但不应承诺疗效，不应模拟持证治疗师身份，不应对自残、暴力或严重危机场景给出替代专业帮助的建议。
+
+% ============================================================
+% 12. FIVE-YEAR VISION
+% ============================================================
+\section{五年愿景}
+
+如果 Pebble 按计划发展，五年后它不应只是一个「帮你回消息」的小工具，而应成为个人关系沟通的防御训练层。它可以围绕用户长期关系对象建立私有、可编辑、可删除的上下文记忆，并把即时解码、模拟训练、复盘笔记、专业转介和机构课程连接起来。
+
+这一愿景的关键前提是克制。Pebble 的品牌不应建立在「AI 比你更懂关系」之上，而应建立在「AI 帮你暂停、看清、练习，并把决定权还给你」之上。只要这一边界不被破坏，Pebble 才有机会在一个高增长但高风险的市场中建立长期信任。
+
+% ============================================================
+% 13. FUNDING ASK / CTA (NEW)
+% ============================================================
+\section{融资请求与下一步}
+
+\begin{keyfinding}
+\textbf{本轮融资目标：}\assumption{人民币 300 万至 500 万}天使轮，覆盖 12--18 个月 runway，用以购买完成三项可证伪证据的时间——用户留存、付费意愿、风险可控。
+\end{keyfinding}
+
+\subsection{资金用途承诺}
+
+\begin{itemize}
+  \item \fact{45\%} 工程与安全治理：完成 E2E 冒烟、OpenAPI 一致性、panic\_sessions 写入、内容审核管线。
+  \item \fact{25\%} 产品与设计：闭环用户旅程优化、付费墙与额度系统、订阅体验。
+  \item \fact{20\%} 内容增长与用户研究：高冲突沟通案例库、社群冷启动、留存与漏斗采集。
+  \item \fact{10\%} 法务、隐私合规与应急储备：非医疗声明、数据治理、危机升级机制。
+\end{itemize}
+
+\subsection{12--18 个月可验证里程碑}
+
+\begin{enumerate}
+  \item 完成 MVP 内测，触达 100 名种子用户，首次解码完成率 \textgreater{} 70\%；
+  \item 启动付费验证，免费转付费率 3\%--5\%、7 日留存 \textgreater{} 25\%；
+  \item 形成机构试点 5 家以上，月经常性收入可支撑核心团队；
+  \item 沉淀安全审计与隐私治理文档，具备进入下一轮融资的基础事实。
+\end{enumerate}
+
+\subsection{期望接触方式}
+
+本计划书希望与具备以下一项或多项能力的早期投资人进一步沟通：(i) AI 应用层与消费订阅模型的运营经验；(ii) 数字健康 / 心理健康产品的合规与渠道资源；(iii) 中文社群冷启动与内容增长经验；(iv) 安全治理与隐私合规的顾问网络。
+
+\vspace{2mm}
+\begin{keyfinding}
+\textbf{联系方式（待填）：}\,Email\,/\,微信\,/\,LinkedIn 等沟通渠道，由用户在最终对外版本中补充。
+\end{keyfinding}
+
+% ============================================================
+% APPENDIX A: LOCAL SOURCES
+% ============================================================
+\section*{附录 A · 本地资料}
+\addcontentsline{toc}{section}{附录 A · 本地资料}
+
+本计划书综合了以下本地真源：
+
+\begin{itemize}
+  \item \texttt{鹅卵石 (Pebble) - PRD.docx}
+  \item \texttt{docs/report/pebble-ai/sections/*.tex}
+  \item \texttt{docs/taskbook/*.md}
+  \item \texttt{apps/web/app/**}
+  \item \texttt{apps/web/lib/db/schema.ts}
+  \item \texttt{apps/web/tests/**}
+  \item \texttt{openspec/changes/**}
+\end{itemize}
+
+其中商业展望、收入模型与融资用途属于计划假设；代码数量、表结构、测试文件与路由数量属于当前仓库可观察事实。
+
+% ============================================================
+% APPENDIX B: REFERENCES
+% ============================================================
+\section*{附录 B · 参考文献}
+\addcontentsline{toc}{section}{附录 B · 参考文献}
+
+\begin{enumerate}[leftmargin=2.4em,label={\textcolor{PebbleAccent}{[\arabic*]}}]
+  \item Sequoia Capital. \emph{Writing a Business Plan}.\\\href{https://sequoiacap.com/article/writing-a-business-plan/}{sequoiacap.com/article/writing-a-business-plan}
+  \item Y Combinator. \emph{A Guide to Seed Fundraising}.\\\href{https://www.ycombinator.com/blog/this-brief-guide-is-a-summary-of-what-startup-founders-need-to-know-about-raising-the-seed-funds-critical-to-getting-their-company-off-the-ground}{ycombinator.com — Guide to Seed Fundraising}
+  \item Y Combinator. \emph{How to Pitch Your Company}.\\\href{https://www.ycombinator.com/blog/how-to-pitch-your-company/}{ycombinator.com/blog/how-to-pitch-your-company}
+  \item Grand View Research. \emph{Mental Health Apps Market Size, Share \& Trends Analysis Report}.\\\href{https://www.grandviewresearch.com/industry-analysis/mental-health-apps-market-report}{grandviewresearch.com — Mental Health Apps Market}
+  \item Research and Markets. \emph{Digital Mental Health Market Report 2026}.\\\href{https://www.researchandmarkets.com/reports/5948541/digital-mental-health-market-report}{researchandmarkets.com — Digital Mental Health 2026}
+  \item Federal Trade Commission. \emph{FTC Launches Inquiry into AI Chatbots Acting as Companions}, 2025.\\\href{https://www.ftc.gov/news-events/news/press-releases/2025/09/ftc-launches-inquiry-ai-chatbots-acting-companions}{ftc.gov — AI Chatbots Inquiry}
+  \item World Health Organization. \emph{Ethics and Governance of Artificial Intelligence for Health}, 2025.\\\href{https://www.who.int/publications/i/item/9789240084759}{who.int — AI for Health Ethics and Governance}
+\end{enumerate}
+
+\end{document}

@@ -60,6 +60,50 @@
   \item 呼吸状态机提取为纯函数模块 \texttt{lib/breathing/breathing-machine.ts}，暴露 \texttt{BreathingPhase} 类型、\texttt{BREATHING\_CYCLE} 常量与 \texttt{nextPhase} 函数，与 React 完全解耦。
 \end{itemize}
 
+前端状态管理与设计系统的具体实现细节如下：
+
+\begin{itemize}
+  \item 四个 Zustand store（翻译、陪练、关系、用户中心）通过显式状态读取调用实现跨 store 通信。翻译 store 在解码时通过全局用户中心 store 的读取接口获取当前关系标识；用户中心 store 使用 persist 中间件将当前关系标识持久化到 localStorage，页面刷新后通过 \texttt{loadSelectedRelation} 重新拉取详情。
+  \item 设计令牌集中在 \texttt{lib/design-system/tokens.ts} 中定义，包含颜色（\texttt{pebbleColors}）、字体（\texttt{pebbleFonts}）、圆角（\texttt{pebbleRadii}）、阴影（\texttt{pebbleShadows}）与动效时长（\texttt{pebbleMotionDurations}）五组常量，并同时通过 CSS 变量注入 \texttt{globals.css}。
+  \item 呼吸状态机提取为纯函数模块 \texttt{lib/breathing/breathing-machine.ts}，暴露 \texttt{BreathingPhase} 类型、\texttt{BREATHING\_CYCLE} 常量与 \texttt{nextPhase} 函数，与 React 完全解耦。
+\end{itemize}
+
+\subsection{前端设计稿资产}
+
+除已运行的前端实现外，当前工作区还保有四份第二版 HTML 设计稿与一份关系图谱可视化设计稿，作为视觉真相源指导后续实现。表~\ref{tab:pebble-design-assets} 给出这些资产的现状。
+
+\begin{table}[H]
+  \centering
+  \caption{Pebble 前端设计稿资产清单（2026-04-23）。}
+  \label{tab:pebble-design-assets}
+  \begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}X}
+    \toprule
+    设计稿 & 格式 & 当前与代码实现的对应状态 \\
+    \midrule
+    首页 & HTML & 基础布局已完成，视觉细节（异形 Logo、Hero 动效、功能预览 Demo UI、滚动渐显）在活跃变更 \texttt{refine-home-page-ui} 中补齐 \\
+    读心翻译器 & HTML & 功能完整，视觉细节（异形圆角、情绪状态条常驻、光晕微交互、底部按钮组）在活跃变更 \texttt{refine-translator-ui} 中补齐 \\
+    模拟陪练场 & HTML & 三栏布局、会话生命周期与情绪得分圆环已联通，消息气泡异形圆角与移动端抽屉式侧边栏已按设计稿实现 \\
+    急救呼吸页 & HTML & CSS 驱动呼吸动画（4-7-8 周期）已按设计稿纯 CSS 方案实现，正圆呼吸圆与浮动球体背景已还原 \\
+    关系图谱 & PNG & 人际关系图谱可视化设计稿已产出，关系节点环形布局与中心辐射结构待接入前端实现 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+上述设计稿的证据锚点如下：
+
+\begin{itemize}
+  \item 四份 HTML 设计稿位于 \texttt{docs/frontend/}，分别为 \texttt{pebble\_home.html}、\texttt{pebble\_translator.html}、\texttt{pebble\_dojo.html}、\texttt{pebble\_breathing.html}。
+  \item 关系图谱设计稿位于 \texttt{relations-redesign.png}，对应人际关系图谱页面的视觉方案。
+\end{itemize}
+
+设计稿与当前代码实现之间的关系可归纳为三点：
+
+\begin{itemize}
+  \item 陪练场与呼吸页的视觉还原度最高，因为二者在实现时直接以第二版 HTML 为真相源，且未遗留活跃的视觉精修变更。
+  \item 首页与翻译器存在已归档的设计系统基线（\texttt{establish-pebble-design-system}、\texttt{build-pebble-translator}）与两个活跃视觉精修变更（\texttt{refine-home-page-ui}、\texttt{refine-translator-ui}），说明核心功能已落地，品牌一致性仍在微调。
+  \item 关系图谱目前仅停留在设计稿阶段，尚未进入前端路由与组件实现。
+\end{itemize}
+
 \subsection{后端服务层}
 
 后端采用 Next.js Route Handlers 作为 BFF。表~\ref{tab:pebble-api-routes} 给出当前路由模板与方法口径。
