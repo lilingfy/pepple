@@ -143,7 +143,7 @@ export const useDojoStore = create<DojoStore>()(
             (m) => m.role === 'user' && m.id === userMessage.id
           );
           const lastUserMessage = userMessages[userMessages.length - 1];
-          if (lastUserMessage) {
+          if (lastUserMessage && response.rightPanel.analysisScore !== null) {
             lastUserMessage.emotionScore = response.rightPanel.analysisScore;
           }
         });

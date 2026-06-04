@@ -7,8 +7,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { practiceService } from '@/lib/backend/services/practice-service';
-import { getCurrentGuestSession } from '@/lib/backend/sessions/guest';
+import { resolvePracticeOwner } from '../_lib/current-user';
 import { normalizeApiFailure, generateRequestId, toErrorResponse, createBackendError } from '@/lib/backend/errors';
+
+function isValidUUID(str: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
+}
 
 interface RouteParams {
   params: Promise<{ practiceId: string }>;
@@ -22,9 +26,17 @@ export async function GET(
 
   try {
     const { practiceId } = await params;
-    const guestSession = await getCurrentGuestSession();
 
-    const entry = await practiceService.get(practiceId);
+    if (!isValidUUID(practiceId)) {
+      throw createBackendError('BAD_REQUEST', 'Invalid practiceId format');
+    }
+
+    const { userId, guestSessionId } = await resolvePracticeOwner();
+
+    const entry = await practiceService.get(practiceId, {
+      userId,
+      guestSessionId,
+    });
 
     if (!entry) {
       throw createBackendError('NOT_FOUND', 'Practice entry not found');
@@ -56,6 +68,11 @@ export async function PATCH(
 
   try {
     const { practiceId } = await params;
+
+    if (!isValidUUID(practiceId)) {
+      throw createBackendError('BAD_REQUEST', 'Invalid practiceId format');
+    }
+
     const body = await request.json();
 
     // Validate update fields
@@ -66,11 +83,17 @@ export async function PATCH(
     } = {};
 
     if (body.isFavorite !== undefined) {
-      updates.isFavorite = Boolean(body.isFavorite);
+      if (typeof body.isFavorite !== 'boolean') {
+        throw createBackendError('BAD_REQUEST', 'isFavorite must be a boolean');
+      }
+      updates.isFavorite = body.isFavorite;
     }
 
     if (body.isArchived !== undefined) {
-      updates.isArchived = Boolean(body.isArchived);
+      if (typeof body.isArchived !== 'boolean') {
+        throw createBackendError('BAD_REQUEST', 'isArchived must be a boolean');
+      }
+      updates.isArchived = body.isArchived;
     }
 
     if (body.primaryReply !== undefined) {
@@ -84,7 +107,12 @@ export async function PATCH(
       throw createBackendError('BAD_REQUEST', 'No valid fields to update');
     }
 
-    const entry = await practiceService.update(practiceId, updates);
+    const { userId, guestSessionId } = await resolvePracticeOwner();
+
+    const entry = await practiceService.update(practiceId, updates, {
+      userId,
+      guestSessionId,
+    });
 
     if (!entry) {
       throw createBackendError('NOT_FOUND', 'Practice entry not found');
@@ -117,7 +145,16 @@ export async function DELETE(
   try {
     const { practiceId } = await params;
 
-    const deleted = await practiceService.delete(practiceId);
+    if (!isValidUUID(practiceId)) {
+      throw createBackendError('BAD_REQUEST', 'Invalid practiceId format');
+    }
+
+    const { userId, guestSessionId } = await resolvePracticeOwner();
+
+    const deleted = await practiceService.delete(practiceId, {
+      userId,
+      guestSessionId,
+    });
 
     if (!deleted) {
       throw createBackendError('NOT_FOUND', 'Practice entry not found');

@@ -36,15 +36,13 @@ describe('InputArea Styling', () => {
   it('输入区容器使用异形圆角样式', () => {
     render(<TranslatorPage />);
     const textarea = screen.getByRole('textbox');
-    const container = textarea.closest('div[class*="rounded"]');
-    expect(container).toBeInTheDocument();
+    expect(textarea.className).toContain('rounded-pebble');
   });
 
   it('输入区容器具有玻璃拟态背景', () => {
     render(<TranslatorPage />);
     const textarea = screen.getByRole('textbox');
-    const container = textarea.closest('div[class*="bg-white"]');
-    expect(container).toBeInTheDocument();
+    expect(textarea.className).toContain('bg-white/60');
   });
 
   it('textarea 聚焦状态可用', () => {
@@ -56,6 +54,6 @@ describe('InputArea Styling', () => {
 
   it('输入区标签显示正确', () => {
     render(<TranslatorPage />);
-    expect(screen.getByText('收到信息')).toBeInTheDocument();
+    expect(screen.getByText(/收到信息/)).toBeInTheDocument();
   });
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { RelationDetail } from '@/components/relations/RelationDetail';
@@ -14,16 +14,20 @@ const CENTER_Y = 300;
 const ORBIT_RADIUS = 220;
 const MAX_NODES = 10;
 
-function getNodePosition(index: number, total: number) {
-  if (total === 0) return { x: CENTER_X, y: CENTER_Y };
-  const angle = (index / Math.min(total, MAX_NODES)) * 2 * Math.PI - Math.PI / 2;
+function getNodePosition(position: number) {
+  const slot = ((position % MAX_NODES) + MAX_NODES) % MAX_NODES;
+  const angle = (slot / MAX_NODES) * 2 * Math.PI - Math.PI / 2;
   return {
     x: CENTER_X + ORBIT_RADIUS * Math.cos(angle),
     y: CENTER_Y + ORBIT_RADIUS * Math.sin(angle),
   };
 }
 
-export default function MeRelationsPage() {
+function sortByGraphPosition(nodes: RelationNode[]) {
+  return [...nodes].sort((a, b) => a.position - b.position || a.createdAt.localeCompare(b.createdAt));
+}
+
+function MeRelationsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const backParam = searchParams.get('back') ?? '/me';
@@ -36,11 +40,7 @@ export default function MeRelationsPage() {
   }, [loadNodes]);
 
   const backUrl = useMemo(() => {
-    try {
-      return decodeURIComponent(backParam);
-    } catch {
-      return '/me';
-    }
+    return backParam.startsWith('/') && !backParam.startsWith('//') ? backParam : '/me';
   }, [backParam]);
 
   const handleNodeClick = useCallback((node: RelationNode) => {
@@ -69,7 +69,7 @@ export default function MeRelationsPage() {
     router.push('/translator');
   }, [router, selectRelation, selectedNode]);
 
-  const visibleNodes = nodes.slice(0, MAX_NODES);
+  const visibleNodes = sortByGraphPosition(nodes).slice(0, MAX_NODES);
 
   return (
     <div className="min-h-screen fluid-bg relative overflow-hidden">
@@ -116,7 +116,7 @@ export default function MeRelationsPage() {
                 <div className="h-24 w-24 rounded-full pebble-glass animate-pulse" />
               </div>
               {[0, 1, 2, 3].map((index) => {
-                const pos = getNodePosition(index, 4);
+                const pos = getNodePosition(index);
                 return (
                   <div
                     key={index}
@@ -165,10 +165,11 @@ export default function MeRelationsPage() {
                 className="animate-flow-dash"
               />
               {visibleNodes.map((node, index) => {
-                const pos = getNodePosition(index, visibleNodes.length);
+                const pos = getNodePosition(node.position);
                 return (
                   <motion.line
                     key={`line-${node.id}`}
+                    data-testid={`relation-graph-line-${node.id}`}
                     x1={CENTER_X}
                     y1={CENTER_Y}
                     x2={pos.x}
@@ -211,12 +212,16 @@ export default function MeRelationsPage() {
               </motion.div>
             </div>
 
-            <div className="absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+            <div
+              data-testid="relation-graph-node-layer"
+              className="absolute top-1/2 left-1/2 z-10 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2"
+            >
               {visibleNodes.map((node, index) => {
-                const pos = getNodePosition(index, visibleNodes.length);
+                const pos = getNodePosition(node.position);
                 return (
                   <div
                     key={node.id}
+                    data-testid={`relation-graph-node-${node.id}`}
                     className="absolute"
                     style={{ left: pos.x - 40, top: pos.y - 40 }}
                   >
@@ -273,5 +278,13 @@ export default function MeRelationsPage() {
 
       <div className="h-32" />
     </div>
+  );
+}
+
+export default function MeRelationsPage() {
+  return (
+    <Suspense fallback={null}>
+      <MeRelationsContent />
+    </Suspense>
   );
 }

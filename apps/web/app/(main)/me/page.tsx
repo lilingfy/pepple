@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useUserCenterStore } from "@/store/user-center-store";
 import { MaterialSymbol } from "@/components/ui/MaterialSymbol";
 import { AppHeader } from "@/components/layout/AppHeader";
+import { signOutAction } from "@/app/(main)/login/actions";
+import type { RelationNode } from "@pebble/types";
 
 const FEATURES = [
   {
@@ -24,6 +26,14 @@ const FEATURES = [
     color: "from-[#BCA564] to-[#9A8544]",
   },
   {
+    key: "practice",
+    label: "练习本",
+    description: "记录练习进度，巩固关系技能",
+    href: "/me/practice",
+    icon: "edit_note",
+    color: "from-[#B8C9D9] to-[#98A8B8]",
+  },
+  {
     key: "breathing",
     label: "急救呼吸",
     description: "情绪急救，快速恢复平静",
@@ -38,7 +48,9 @@ interface RelationStats {
 }
 
 export default function MePage() {
-  const { selectedRelation, loadSelectedRelation } = useUserCenterStore();
+  const { selectedRelation, loadSelectedRelation, clearSelectedRelation } =
+    useUserCenterStore();
+  const currentRelation = isRenderableRelation(selectedRelation) ? selectedRelation : null;
   const [relationStats, setRelationStats] = useState<RelationStats | null>(
     null,
   );
@@ -69,30 +81,41 @@ export default function MePage() {
               <h2 className="text-lg font-semibold text-[#2C3E50]">当前关系</h2>
             </div>
 
-            {selectedRelation ? (
+            {currentRelation ? (
               <div className="flex items-start gap-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#A8D8B9] to-[#7D8C9F] flex items-center justify-center text-white text-2xl font-bold">
-                  {selectedRelation.name.charAt(0)}
+                  {currentRelation.name.charAt(0)}
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-semibold text-[#2C3E50]">
-                    {selectedRelation.name}
+                    {currentRelation.name}
                   </h3>
                   <p className="text-sm text-[#7D8C9F] mt-1">
-                    {selectedRelation.relationshipType || "未指定关系类型"}
+                    {currentRelation.relationshipType || "未指定关系类型"}
                   </p>
-                  {selectedRelation.对方特点 && (
+                  {currentRelation.对方特点 && (
                     <p className="text-sm text-slate-600 mt-2 line-clamp-2">
-                      {selectedRelation.对方特点}
+                      {currentRelation.对方特点}
                     </p>
                   )}
-                  <Link
-                    href="/me/relations"
-                    className="inline-flex items-center gap-1 mt-3 text-sm text-[#A8D8B9] hover:text-[#8BC4A0] transition-colors"
-                  >
-                    管理关系
-                    <MaterialSymbol icon="arrow_forward" className="text-sm" />
-                  </Link>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+                    <Link
+                      href="/me/relations"
+                      className="inline-flex items-center gap-1 text-[#A8D8B9] transition-colors hover:text-[#8BC4A0]"
+                    >
+                      管理关系
+                      <MaterialSymbol icon="arrow_forward" className="text-sm" />
+                    </Link>
+                    <span className="text-[#7D8C9F]/30" aria-hidden="true">·</span>
+                    <button
+                      type="button"
+                      onClick={clearSelectedRelation}
+                      className="inline-flex items-center gap-1 text-[#7D8C9F] transition-colors hover:text-[#5D6D7E]"
+                      aria-label="取消使用当前关系"
+                    >
+                      取消使用
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -127,7 +150,7 @@ export default function MePage() {
                 <div className="text-3xl font-bold text-[#A8D8B9]">
                   {relationStats?.count ?? 0}
                 </div>
-                <div className="text-sm text-[#7D8C9F]">关系档案</div>
+                <div className="text-sm text-[#7D8C9F]" title="当前为占位统计，后续会接入真实关系档案数量">关系档案</div>
               </div>
               <div className="text-center p-4 bg-[#BCA564]/10 rounded-2xl">
                 <div className="text-3xl font-bold text-[#BCA564]">
@@ -186,7 +209,45 @@ export default function MePage() {
             </Link>
           </div>
         </section>
+
+        {/* 账户安全 */}
+        <section className="mt-6 bg-white/70 backdrop-blur-sm rounded-3xl p-6 shadow-sm border border-white/60">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#E07A5F]/10 flex items-center justify-center shrink-0">
+                <MaterialSymbol icon="shield_lock" className="text-[#B95C46]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-[#2C3E50] mb-1">
+                  账户安全
+                </h2>
+                <p className="text-sm text-[#7D8C9F] leading-relaxed">
+                  退出后，你需要重新登录才能访问个人中心和关系档案。
+                </p>
+              </div>
+            </div>
+
+            <form
+              action={signOutAction}
+              onSubmit={() => {
+                clearSelectedRelation();
+              }}
+            >
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-[#E07A5F]/10 text-[#B95C46] hover:bg-[#E07A5F]/15 hover:text-[#9F4F3D] transition-colors text-sm font-medium whitespace-nowrap"
+              >
+                <MaterialSymbol icon="logout" className="text-sm" />
+                退出当前账户
+              </button>
+            </form>
+          </div>
+        </section>
       </main>
     </>
   );
+}
+
+function isRenderableRelation(relation: RelationNode | null): relation is RelationNode {
+  return typeof relation?.name === 'string' && relation.name.length > 0;
 }

@@ -1,9 +1,9 @@
 /**
  * LLM Configuration for Pebble
- * 默认使用智谱AI (Zhipu) 作为LLM提供商
+ * 默认使用 NVIDIA OpenAI-compatible endpoint 作为LLM提供商
  */
 
-export type LLMProvider = 'zhipu' | 'openai' | 'anthropic';
+export type LLMProvider = 'nvidia' | 'zhipu' | 'openai' | 'anthropic';
 
 export interface LLMConfig {
   provider: LLMProvider;
@@ -17,6 +17,13 @@ export interface LLMConfig {
  * 可用的LLM提供商配置
  */
 export const LLM_PROVIDERS: Record<LLMProvider, LLMConfig> = {
+  nvidia: {
+    provider: 'nvidia',
+    name: 'NVIDIA API Catalog',
+    description: 'OpenAI-compatible endpoint，可运行 GLM 等模型',
+    model: process.env.NVIDIA_MODEL || 'qwen/qwen3-next-80b-a3b-instruct',
+    enabled: true,
+  },
   zhipu: {
     provider: 'zhipu',
     name: '智谱AI',
@@ -42,14 +49,14 @@ export const LLM_PROVIDERS: Record<LLMProvider, LLMConfig> = {
 
 /**
  * 获取默认LLM提供商
- * 优先从环境变量读取，默认为 zhipu
+ * 优先从环境变量读取，默认为 nvidia
  */
 export function getDefaultProvider(): LLMProvider {
   const envProvider = process.env.DEFAULT_LLM_PROVIDER as LLMProvider;
   if (envProvider && LLM_PROVIDERS[envProvider]) {
     return envProvider;
   }
-  return 'zhipu';
+  return 'nvidia';
 }
 
 /**
@@ -57,11 +64,29 @@ export function getDefaultProvider(): LLMProvider {
  */
 export function getApiKey(provider: LLMProvider): string | undefined {
   const keyMap: Record<LLMProvider, string | undefined> = {
+    nvidia: process.env.NVIDIA_API_KEY,
     zhipu: process.env.ZHIPU_API_KEY,
     openai: process.env.OPENAI_API_KEY,
     anthropic: process.env.ANTHROPIC_API_KEY,
   };
   return keyMap[provider];
+}
+
+export function getProviderBaseUrl(provider: LLMProvider): string | undefined {
+  const baseUrlMap: Record<LLMProvider, string | undefined> = {
+    nvidia: process.env.NVIDIA_BASE_URL || 'https://integrate.api.nvidia.com/v1',
+    zhipu: undefined,
+    openai: undefined,
+    anthropic: undefined,
+  };
+  return baseUrlMap[provider];
+}
+
+export function getProviderModel(provider: LLMProvider): string {
+  if (provider === 'nvidia') {
+    return process.env.NVIDIA_MODEL || LLM_PROVIDERS.nvidia.model;
+  }
+  return LLM_PROVIDERS[provider].model;
 }
 
 /**

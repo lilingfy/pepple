@@ -5,6 +5,8 @@
 
 import { simulatorRepository } from '../repositories/simulator-repository';
 import { createBackendError } from '../errors';
+import { withTimeout } from '../policy/timeout';
+import { simulateConversation, type SimulatorResult } from '@/lib/llm';
 import type {
   ScenarioItem,
   SimulatorResponse,
@@ -12,6 +14,33 @@ import type {
   SimulatorEndResponse,
 } from '@pebble/types';
 import type { SimulationSession as DbSession, SimulationTurn } from '@/lib/db/schema';
+import type { SessionWithTurns } from '../repositories/simulator-repository';
+
+const SIMULATOR_LLM_TIMEOUT_MS = 30000;
+const SCORE_CARD_ANALYSIS_MAX_CHARS = 120;
+
+interface CoachingAnalysis {
+  score: number | null;
+  label: string;
+  summary: string;
+  feedback: string;
+  attentionPoint: string;
+  scoreSource: 'pending' | 'ai' | 'rule' | 'fallback';
+  scoreBreakdown?: ScoreBreakdown;
+}
+
+interface ScoreBreakdown {
+  neutrality: number;
+  brevity: number;
+  boundaryClarity: number;
+  jadeAvoidance: number;
+  empathy: number;
+}
+
+interface AIResponseResult {
+  reply: string;
+  analysis: CoachingAnalysis;
+}
 
 // Preset scenarios data - matches frontend expectations
 const scenariosData: Record<string, ScenarioItem & {
@@ -123,17 +152,16 @@ export class SimulatorService {
       initialMessage: opening,
     });
 
-    const analysis = this.analyzeEmotion(opening);
-
     return {
       session: this.toSessionDTO(session),
       reply: opening,
       rightPanel: {
-        analysisScore: analysis.score,
-        analysisLabel: analysis.label,
-        analysisSummary: analysis.summary,
-        instantFeedback: analysis.feedback,
-        attentionPoint: '注意对方的情绪操控意图',
+        analysisScore: null,
+        analysisLabel: '待评分',
+        analysisSummary: '等待你的第一句回应后开始评分。',
+        instantFeedback: '先观察对方的话术，再用一句简短回应表达边界。',
+        attentionPoint: '注意对方的情绪操控意图。',
+        scoreSource: 'pending',
       },
     };
   }
@@ -162,33 +190,37 @@ export class SimulatorService {
       content: message,
     });
 
-    // Analyze user message
-    const analysis = this.analyzeEmotion(message);
-
-    // Generate AI response
-    const aiResponse = this.generateAIResponse(session.scenarioId, message, session.turns);
+    // Generate AI response and coaching analysis. Falls back internally when
+    // the provider is missing, slow, or returns malformed output.
+    const aiResult = await this.generateAIResponse(
+      session.scenarioId,
+      message,
+      session.turns,
+    );
 
     // Add AI turn with analysis
     await this.repository.addTurn({
       sessionId,
       role: 'assistant',
-      content: aiResponse,
+      content: aiResult.reply,
       analysisJsonb: {
-        score: analysis.score,
-        label: analysis.label,
-        feedback: analysis.feedback,
+        score: aiResult.analysis.score,
+        label: aiResult.analysis.label,
+        feedback: aiResult.analysis.feedback,
       },
     });
 
     return {
       session: this.toSessionDTO(await this.repository.findById(sessionId) as SessionWithTurns),
-      reply: aiResponse,
+      reply: aiResult.reply,
       rightPanel: {
-        analysisScore: analysis.score,
-        analysisLabel: analysis.label,
-        analysisSummary: analysis.summary,
-        instantFeedback: analysis.feedback,
-        attentionPoint: '保持冷静，避免情绪被带动',
+        analysisScore: aiResult.analysis.score,
+        analysisLabel: aiResult.analysis.label,
+        analysisSummary: aiResult.analysis.summary,
+        instantFeedback: aiResult.analysis.feedback,
+        attentionPoint: aiResult.analysis.attentionPoint,
+        scoreSource: aiResult.analysis.scoreSource,
+        scoreBreakdown: aiResult.analysis.scoreBreakdown,
       },
     };
   }
@@ -264,61 +296,102 @@ export class SimulatorService {
   /**
    * Analyze emotion in a message
    */
-  private analyzeEmotion(message: string): {
-    score: number;
-    label: string;
-    summary: string;
-    feedback: string;
-  } {
+  private analyzeEmotion(message: string): CoachingAnalysis {
     const lowerMsg = message.toLowerCase();
+    const length = Array.from(message.trim()).length;
 
-    const hasGrayRock =
-      lowerMsg.includes('抱歉') ||
+    const hasBoundary =
+      /我[^，。！？,.!?]{0,8}(不能|不会|需要|决定|选择|可以|会|无法)/.test(message) ||
+      lowerMsg.includes('不行') ||
+      lowerMsg.includes('无法') ||
+      lowerMsg.includes('不能');
+
+    const hasEmpathy =
       lowerMsg.includes('理解') ||
-      lowerMsg.includes('但是') ||
-      message.length < 50;
+      lowerMsg.includes('知道') ||
+      lowerMsg.includes('明白') ||
+      lowerMsg.includes('在乎') ||
+      lowerMsg.includes('感受');
 
-    const overExplained =
-      lowerMsg.includes('因为') &&
-      (lowerMsg.includes('所以') || message.length > 100);
+    const hasAttack =
+      lowerMsg.includes('你总是') ||
+      lowerMsg.includes('你从来') ||
+      lowerMsg.includes('你根本') ||
+      lowerMsg.includes('有病') ||
+      lowerMsg.includes('闭嘴');
 
-    if (hasGrayRock && !overExplained) {
-      return {
-        score: 85,
-        label: '优秀',
-        summary: '你成功识别了情绪陷阱。当前语气非常克制，有效避免了对抗性升级。',
-        feedback: '简洁有力，未陷入"解释"陷阱。保持住！',
-      };
-    } else if (hasGrayRock) {
-      return {
-        score: 70,
-        label: '良好',
-        summary: '整体表现不错，但可以更简洁，减少解释。',
-        feedback: '回应的方向是对的，但解释部分可以删减。',
-      };
-    } else if (overExplained) {
-      return {
-        score: 50,
-        label: '一般',
-        summary: '注意对方在试图激怒你，保持冷静。',
-        feedback: '解释过多可能让对方觉得你在辩解。',
-      };
-    }
+    const explanationMarkers = ['因为', '所以', '但是', '其实', '只是', '如果你理解', '我都已经'];
+    const explanationCount = explanationMarkers.filter((marker) => lowerMsg.includes(marker)).length;
+    const overExplained = explanationCount >= 2 || length > 80;
+
+    const breakdown: ScoreBreakdown = {
+      neutrality: this.clampScore(80 - (hasAttack ? 45 : 0) - (overExplained ? 12 : 0)),
+      brevity: this.clampScore(length <= 35 ? 90 : length <= 60 ? 72 : length <= 90 ? 55 : 35),
+      boundaryClarity: this.clampScore(hasBoundary ? 88 : 45),
+      jadeAvoidance: this.clampScore(90 - explanationCount * 18 - (overExplained ? 15 : 0) - (hasAttack ? 20 : 0)),
+      empathy: this.clampScore(hasEmpathy ? 78 : 55),
+    };
+
+    const score = this.weightedScore(breakdown);
+    const strengths = [];
+    const improvements = [];
+
+    if (breakdown.boundaryClarity >= 75) strengths.push('边界表达清楚');
+    else improvements.push('更直接说出你的边界或决定');
+    if (breakdown.jadeAvoidance >= 75) strengths.push('没有明显陷入解释或争辩');
+    else improvements.push('减少“因为/所以/但是”等解释链');
+    if (breakdown.brevity < 65) improvements.push('把回应压缩成一到两句');
+    if (breakdown.neutrality < 65) improvements.push('避免反击或评价对方');
 
     return {
-      score: 65,
-      label: '良好',
-      summary: '整体表现不错，但可以更简洁，减少解释。',
-      feedback: '回应的方向是对的，还有提升空间。',
+      score,
+      label: this.labelForScore(score),
+      summary: strengths.length > 0
+        ? `这次回应的优势是：${strengths.join('、')}。${improvements.length > 0 ? `下一步可以：${improvements.join('、')}。` : '整体已经比较稳定。'}`
+        : `这次回应还容易给对方继续拉扯的空间。建议：${improvements.join('、')}。`,
+      feedback: score >= 80
+        ? '回应稳定且边界清楚，可以继续保持。'
+        : score >= 60
+          ? '方向是对的，但还可以更短、更少解释。'
+          : '先降低解释和反击，直接表达一个清楚边界。',
+      attentionPoint: breakdown.jadeAvoidance < 70
+        ? '注意 JADE：不要辩解、争论、防御或长篇解释。'
+        : '继续保持短句回应，不给对方新的情绪抓手。',
+      scoreSource: 'rule',
+      scoreBreakdown: breakdown,
     };
   }
 
   /**
    * Generate AI response based on scenario and history
    */
-  private generateAIResponse(
+  private async generateAIResponse(
     scenarioId: string,
-    _userMessage: string,
+    userMessage: string,
+    history: SimulationTurn[]
+  ): Promise<AIResponseResult> {
+    try {
+      const llmResult = await withTimeout(
+        simulateConversation(
+          scenarioId,
+          userMessage,
+          this.toLLMHistory(history, userMessage),
+        ),
+        SIMULATOR_LLM_TIMEOUT_MS,
+        'Simulator LLM timed out',
+      );
+      return this.mapLLMResult(llmResult);
+    } catch (error) {
+      console.error('Simulator LLM failed, using fallback:', error);
+      return {
+        reply: this.generateFallbackAIResponse(scenarioId, history),
+        analysis: this.analyzeEmotion(userMessage),
+      };
+    }
+  }
+
+  private generateFallbackAIResponse(
+    scenarioId: string,
     history: SimulationTurn[]
   ): string {
     const scenario = scenariosData[scenarioId];
@@ -335,6 +408,79 @@ export class SimulatorService {
     return responses[userTurns % responses.length];
   }
 
+  private toLLMHistory(
+    history: SimulationTurn[],
+    userMessage: string,
+  ): Array<{ role: 'user' | 'antagonist'; content: string }> {
+    return [
+      ...history.map((turn) => ({
+        role: turn.role === 'user' ? 'user' as const : 'antagonist' as const,
+        content: turn.content,
+      })),
+      { role: 'user' as const, content: userMessage },
+    ];
+  }
+
+  private mapLLMResult(result: SimulatorResult): AIResponseResult {
+    const score = Math.max(0, Math.min(100, Math.round(result.coachFeedback.score)));
+    const scoreBreakdown = this.normalizeBreakdown(result.coachFeedback.scoreBreakdown, score);
+    return {
+      reply: result.nextAttack,
+      analysis: {
+        score,
+        label: this.labelForScore(score),
+        summary: this.truncateForScoreCard(result.coachFeedback.analysis || 'AI 已分析你的回应。'),
+        feedback: result.coachFeedback.suggestion || '继续保持简短、稳定的边界表达。',
+        attentionPoint: result.coachFeedback.betterReply
+          ? `可以尝试这样回应：${result.coachFeedback.betterReply}`
+          : '保持冷静，避免进入解释或争辩。',
+        scoreSource: 'ai',
+        scoreBreakdown,
+      },
+    };
+  }
+
+  private truncateForScoreCard(text: string): string {
+    const normalized = text.replace(/\s+/g, ' ').trim();
+    const chars = Array.from(normalized);
+    if (chars.length <= SCORE_CARD_ANALYSIS_MAX_CHARS) return normalized;
+    return `${chars.slice(0, SCORE_CARD_ANALYSIS_MAX_CHARS).join('')}…`;
+  }
+
+  private normalizeBreakdown(
+    breakdown: SimulatorResult['coachFeedback']['scoreBreakdown'],
+    fallbackScore: number,
+  ): ScoreBreakdown {
+    return {
+      neutrality: this.clampScore(breakdown?.neutrality ?? fallbackScore),
+      brevity: this.clampScore(breakdown?.brevity ?? fallbackScore),
+      boundaryClarity: this.clampScore(breakdown?.boundaryClarity ?? fallbackScore),
+      jadeAvoidance: this.clampScore(breakdown?.jadeAvoidance ?? fallbackScore),
+      empathy: this.clampScore(breakdown?.empathy ?? fallbackScore),
+    };
+  }
+
+  private weightedScore(breakdown: ScoreBreakdown): number {
+    return Math.round(
+      breakdown.neutrality * 0.3 +
+      breakdown.boundaryClarity * 0.25 +
+      breakdown.jadeAvoidance * 0.25 +
+      breakdown.brevity * 0.1 +
+      breakdown.empathy * 0.1
+    );
+  }
+
+  private clampScore(score: number): number {
+    return Math.max(0, Math.min(100, Math.round(score)));
+  }
+
+  private labelForScore(score: number): string {
+    if (score >= 90) return '优秀';
+    if (score >= 70) return '良好';
+    if (score >= 50) return '一般';
+    return '需要练习';
+  }
+
   /**
    * Convert DB session to DTO
    */
@@ -347,10 +493,9 @@ export class SimulatorService {
         role: t.role as 'user' | 'assistant',
         content: t.content,
         timestamp: t.timestamp.toISOString(),
-        analysis: t.analysisJsonb as { score: number; label: string; feedback: string } | undefined,
       })),
       status: session.completed ? 'completed' : 'active',
-      turnCount: session.turnsCount,
+      turnCount: session.turnsCount ?? session.turns.length,
       createdAt: session.createdAt.toISOString(),
       updatedAt: session.createdAt.toISOString(), // Use createdAt as fallback
     };

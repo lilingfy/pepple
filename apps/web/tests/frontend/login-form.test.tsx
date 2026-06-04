@@ -10,11 +10,9 @@ import LoginForm from '@/app/(main)/login/LoginForm';
 
 // Mock the server actions
 const mockSignInAction = vi.fn();
-const mockSignUpAction = vi.fn();
 
 vi.mock('@/app/(main)/login/actions', () => ({
   signInAction: (...args: unknown[]) => mockSignInAction(...args),
-  signUpAction: (...args: unknown[]) => mockSignUpAction(...args),
   INITIAL_STATE: { error: null, message: null },
   AuthFormState: {},
 }));
@@ -23,7 +21,6 @@ describe('LoginForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSignInAction.mockResolvedValue({ error: null, message: null });
-    mockSignUpAction.mockResolvedValue({ error: null, message: null });
   });
 
   // --- Rendering Tests ---
@@ -59,11 +56,11 @@ describe('LoginForm', () => {
     expect(signInButton).toHaveAttribute('type', 'submit');
   });
 
-  it('renders sign up button', () => {
+  it('renders register link', () => {
     render(<LoginForm redirectUrl="/me" />);
-    const signUpButton = screen.getByRole('button', { name: /注册/i });
-    expect(signUpButton).toBeInTheDocument();
-    expect(signUpButton).toHaveAttribute('type', 'submit');
+    const registerLink = screen.getByRole('link', { name: /去注册/i });
+    expect(registerLink).toBeInTheDocument();
+    expect(registerLink).toHaveAttribute('href', '/register?redirect=%2Fme');
   });
 
   it('renders email placeholder', () => {
@@ -98,102 +95,7 @@ describe('LoginForm', () => {
     });
   });
 
-  it('displays sign-up verification message when sign-up succeeds without session', async () => {
-    mockSignUpAction.mockResolvedValue({ 
-      error: null, 
-      message: '注册成功，请先完成邮箱验证后再登录。' 
-    });
-
-    render(<LoginForm redirectUrl="/me" />);
-    
-    const emailInput = screen.getByLabelText(/邮箱/i);
-    const passwordInput = screen.getByLabelText(/密码/i);
-    const signUpButton = screen.getByRole('button', { name: /注册/i });
-
-    fireEvent.change(emailInput, { target: { value: 'new@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'password123' } });
-    fireEvent.click(signUpButton);
-
-    await waitFor(() => {
-      expect(screen.getByText(/邮箱验证/)).toBeInTheDocument();
-    });
-  });
-
-  it('shows latest sign-up result even when previous sign-in had error', async () => {
-    // First, sign-in fails
-    mockSignInAction.mockResolvedValue({ 
-      error: 'Sign in failed', 
-      message: null 
-    });
-
-    const { rerender } = render(<LoginForm redirectUrl="/me" />);
-    
-    const emailInput = screen.getByLabelText(/邮箱/i);
-    const passwordInput = screen.getByLabelText(/密码/i);
-
-    // Submit sign-in (fails)
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } });
-    fireEvent.click(screen.getByRole('button', { name: /登录/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText('Sign in failed')).toBeInTheDocument();
-    });
-
-    // Now sign-up succeeds - should show sign-up message, not old sign-in error
-    mockSignUpAction.mockResolvedValue({ 
-      error: null, 
-      message: '注册成功，请先完成邮箱验证后再登录。' 
-    });
-
-    fireEvent.change(emailInput, { target: { value: 'new@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: /注册/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/邮箱验证/)).toBeInTheDocument();
-      expect(screen.queryByText('Sign in failed')).not.toBeInTheDocument();
-    });
-  });
-
-  it('shows latest sign-in result even when previous sign-up had error', async () => {
-    // First, sign-up fails
-    mockSignUpAction.mockResolvedValue({ 
-      error: 'Email already exists', 
-      message: null 
-    });
-
-    render(<LoginForm redirectUrl="/me" />);
-    
-    const emailInput = screen.getByLabelText(/邮箱/i);
-    const passwordInput = screen.getByLabelText(/密码/i);
-
-    // Submit sign-up (fails)
-    fireEvent.change(emailInput, { target: { value: 'existing@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: /注册/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText('Email already exists')).toBeInTheDocument();
-    });
-
-    // Now sign-in succeeds (redirects, but before that shows no error)
-    mockSignInAction.mockResolvedValue({ 
-      error: null, 
-      message: null 
-    });
-
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'correctpassword' } });
-    fireEvent.click(screen.getByRole('button', { name: /登录/i }));
-
-    await waitFor(() => {
-      // The old sign-up error should be gone
-      expect(screen.queryByText('Email already exists')).not.toBeInTheDocument();
-    });
-  });
-
-  it('disables both buttons while sign-in is pending', async () => {
+  it('disables sign-in button while sign-in is pending', async () => {
     // Create a delayed promise to keep pending state
     let resolveAction: (value: { error: null; message: null }) => void;
     const actionPromise = new Promise<{ error: null; message: null }>((resolve) => {
@@ -206,45 +108,14 @@ describe('LoginForm', () => {
     const emailInput = screen.getByLabelText(/邮箱/i);
     const passwordInput = screen.getByLabelText(/密码/i);
     const signInButton = screen.getByRole('button', { name: /登录/i });
-    const signUpButton = screen.getByRole('button', { name: /注册/i });
 
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
     fireEvent.click(signInButton);
 
-    // Both buttons should be disabled while pending
+    // Button should be disabled while pending
     await waitFor(() => {
       expect(signInButton).toBeDisabled();
-      expect(signUpButton).toBeDisabled();
-    });
-
-    // Resolve the action
-    resolveAction!({ error: null, message: null });
-  });
-
-  it('disables both buttons while sign-up is pending', async () => {
-    // Create a delayed promise to keep pending state
-    let resolveAction: (value: { error: null; message: null }) => void;
-    const actionPromise = new Promise<{ error: null; message: null }>((resolve) => {
-      resolveAction = resolve;
-    });
-    mockSignUpAction.mockReturnValue(actionPromise);
-
-    render(<LoginForm redirectUrl="/me" />);
-    
-    const emailInput = screen.getByLabelText(/邮箱/i);
-    const passwordInput = screen.getByLabelText(/密码/i);
-    const signInButton = screen.getByRole('button', { name: /登录/i });
-    const signUpButton = screen.getByRole('button', { name: /注册/i });
-
-    fireEvent.change(emailInput, { target: { value: 'new@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'password123' } });
-    fireEvent.click(signUpButton);
-
-    // Both buttons should be disabled while pending
-    await waitFor(() => {
-      expect(signInButton).toBeDisabled();
-      expect(signUpButton).toBeDisabled();
     });
 
     // Resolve the action
@@ -270,30 +141,6 @@ describe('LoginForm', () => {
 
     await waitFor(() => {
       expect(screen.getByText('登录中...')).toBeInTheDocument();
-    });
-
-    resolveAction!({ error: null, message: null });
-  });
-
-  it('shows loading state on sign-up button while signing up', async () => {
-    let resolveAction: (value: { error: null; message: null }) => void;
-    const actionPromise = new Promise<{ error: null; message: null }>((resolve) => {
-      resolveAction = resolve;
-    });
-    mockSignUpAction.mockReturnValue(actionPromise);
-
-    render(<LoginForm redirectUrl="/me" />);
-    
-    const emailInput = screen.getByLabelText(/邮箱/i);
-    const passwordInput = screen.getByLabelText(/密码/i);
-    const signUpButton = screen.getByRole('button', { name: /注册/i });
-
-    fireEvent.change(emailInput, { target: { value: 'new@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'password123' } });
-    fireEvent.click(signUpButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('注册中...')).toBeInTheDocument();
     });
 
     resolveAction!({ error: null, message: null });

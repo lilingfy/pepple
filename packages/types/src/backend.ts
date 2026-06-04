@@ -52,13 +52,14 @@ export interface EmotionAnalysis {
   subtext: string;
   emotionScore: number;
   neutralityScore: number;
+  emotionStatus: string;
 }
 
 export interface ReplyOption {
   id: string;
   label: string;
   content: string;
-  tone: 'neutral' | 'assertive' | 'empathetic';
+  tone: string;
 }
 
 // ==========================================
@@ -75,8 +76,12 @@ export interface PracticeCreateRequest {
 
 export interface PracticeContentDecode {
   originalText: string;
+  surfaceMeaning: string;
   analysis: EmotionAnalysis;
   replyOptions: ReplyOption[];
+  selectedReplyId: string;
+  relationId?: string;
+  relationName?: string;
 }
 
 export interface PracticeContentSimulator {
@@ -104,6 +109,7 @@ export interface PracticeListResponse {
   entries: PracticeEntry[];
   total: number;
   hasMore: boolean;
+  nextCursor?: string;
 }
 
 export interface PracticeUpdateRequest {
@@ -163,11 +169,19 @@ export interface SimulatorResponse {
   session: SimulatorSession;
   reply: string;
   rightPanel: {
-    analysisScore: number;
+    analysisScore: number | null;
     analysisLabel: string;
     analysisSummary: string;
     instantFeedback: string;
     attentionPoint: string;
+    scoreSource?: 'pending' | 'ai' | 'rule' | 'fallback';
+    scoreBreakdown?: {
+      neutrality: number;
+      brevity: number;
+      boundaryClarity: number;
+      jadeAvoidance: number;
+      empathy: number;
+    };
   };
 }
 

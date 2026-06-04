@@ -7,6 +7,7 @@ import { db } from '@/lib/db';
 import { analysisLogs, relationNodes } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { buildDecoderSystemWithContext } from '@/lib/llm/prompts';
+import { analyzeText as analyzeTextWithLLM, type DecoderResult } from '@/lib/llm';
 import { redactSensitiveText } from '../policy/pii';
 import { withTimeout } from '../policy/timeout';
 import { createBackendError } from '../errors';
@@ -20,7 +21,12 @@ interface AnalyzeOptions {
   skipPII?: boolean;
 }
 
-const FALLBACK_TIMEOUT_MS = 10000;
+type LLMDecodeAnalysis = EmotionAnalysis & {
+  surfaceMeaning?: string;
+  replies?: DecoderResult['replies'];
+};
+
+const FALLBACK_TIMEOUT_MS = 30000;
 
 // Map attack types to Chinese emotion status
 const attackTypeToChinese: Record<string, string> = {
@@ -92,7 +98,7 @@ export async function analyzeText(options: AnalyzeOptions): Promise<DecodeRespon
       || '一般场景';
 
     return {
-      surfaceMeaning: text,
+      surfaceMeaning: analysis.surfaceMeaning || text,
       subtext: analysis.subtext,
       emotionStatus,
       emotionScore: analysis.emotionScore,
@@ -182,52 +188,24 @@ async function buildRelationContext(relationId: string): Promise<string> {
 async function performLLMAnalysis(
   text: string,
   context?: string
-): Promise<EmotionAnalysis> {
-  // This would call the actual LLM service
-  // For now, return a mock result to maintain compatibility
-  // TODO: Integrate with actual LLM service
-
-  const hasContext = Boolean(context?.trim());
-  const systemPrompt = buildDecoderSystemWithContext(context ?? '');
-  void systemPrompt;
-
-  const lowerText = text.toLowerCase();
-
-  const hasComparison = lowerText.includes('别人家') || lowerText.includes('人家');
-  const hasMoralBinding = lowerText.includes('养你') || lowerText.includes('为了你好');
-  const hasGuiltTrip = lowerText.includes('白眼狼') || lowerText.includes('不孝');
-  const hasAttack = lowerText.includes('笨') || lowerText.includes('废物');
-
-  let emotionScore = 40;
-  let attackType = 'general';
-  let scenario = 'general';
-
-  if (hasGuiltTrip) {
-    emotionScore = 75;
-    attackType = 'guilt_trip';
-    scenario = 'manipulation';
-  } else if (hasMoralBinding) {
-    emotionScore = 60;
-    attackType = 'moral_binding';
-    scenario = 'obligation';
-  } else if (hasComparison) {
-    emotionScore = 55;
-    attackType = 'comparison';
-    scenario = 'criticism';
-  } else if (hasAttack) {
-    emotionScore = 65;
-    attackType = 'personal_attack';
-    scenario = 'criticism';
-  }
+): Promise<LLMDecodeAnalysis> {
+  const result = await analyzeTextWithLLM(text, {
+    systemPrompt: buildDecoderSystemWithContext(context ?? ''),
+  });
+  const attackType = normalizeAttackType(result.attackType);
+  const emotionScore = inferEmotionScore(attackType, result.attackType);
 
   return {
     attackType,
-    scenario,
-    subtext: hasContext
-      ? '结合当前关系背景，对方试图通过情感操控来影响你的行为'
-      : '对方试图通过情感操控来影响你的行为',
+    scenario: scenarioForAttackType(attackType),
+    subtext: [result.trueIntent, result.culturalContext, result.tacticalTip]
+      .filter(Boolean)
+      .join('\n\n'),
     emotionScore,
     neutralityScore: 100 - emotionScore,
+    emotionStatus: attackTypeToChinese[attackType] || scenarioToChinese[scenarioForAttackType(attackType)] || '一般场景',
+    surfaceMeaning: result.surfaceMeaning,
+    replies: result.replies,
   };
 }
 
@@ -298,6 +276,7 @@ function performHeuristicAnalysis(text: string, context?: string): EmotionAnalys
     subtext: generateSubtext(attackType, scenario, Boolean(context?.trim())),
     emotionScore: baseScore,
     neutralityScore: 100 - baseScore,
+    emotionStatus: attackTypeToChinese[attackType] || scenarioToChinese[scenario] || '一般场景',
   };
 }
 
@@ -318,10 +297,80 @@ function generateSubtext(attackType: string, _scenario: string, hasContext = fal
   return hasContext ? `结合当前关系背景，${baseSubtext}` : baseSubtext;
 }
 
+function normalizeAttackType(attackTypes: string[]): string {
+  const normalized = attackTypes.map((type) => type.toLowerCase());
+  const rawText = attackTypes.join(' ');
+
+  if (normalized.some((type) => type.includes('guilt')) || /愧疚|内疚|孝|白眼狼|不孝/.test(rawText)) {
+    return 'guilt_trip';
+  }
+  if (normalized.some((type) => type.includes('moral')) || /道德|义务|为了你好|养你/.test(rawText)) {
+    return 'moral_binding';
+  }
+  if (normalized.some((type) => type.includes('comparison')) || /比较|别人家|人家/.test(rawText)) {
+    return 'comparison';
+  }
+  if (normalized.some((type) => type.includes('attack')) || /攻击|辱骂|贬低|废物|没用/.test(rawText)) {
+    return 'personal_attack';
+  }
+  if (normalized.some((type) => type.includes('gaslight')) || /煤气灯|否认|太敏感|想多了/.test(rawText)) {
+    return 'gaslighting';
+  }
+  return 'general';
+}
+
+function scenarioForAttackType(attackType: string): string {
+  const scenarioMap: Record<string, string> = {
+    guilt_trip: 'manipulation',
+    moral_binding: 'obligation',
+    comparison: 'criticism',
+    personal_attack: 'criticism',
+    gaslighting: 'invalidation',
+    general: 'general',
+  };
+  return scenarioMap[attackType] || 'general';
+}
+
+function inferEmotionScore(attackType: string, rawAttackTypes: string[]): number {
+  const baseScores: Record<string, number> = {
+    guilt_trip: 75,
+    moral_binding: 65,
+    comparison: 58,
+    personal_attack: 72,
+    gaslighting: 78,
+    general: 40,
+  };
+  const intensityBonus = Math.min(Math.max(rawAttackTypes.length - 1, 0) * 5, 15);
+  return Math.min(baseScores[attackType] + intensityBonus, 95);
+}
+
 /**
  * Generate reply options based on analysis
  */
-function generateReplyOptions(analysis: EmotionAnalysis): ReplyOption[] {
+function generateReplyOptions(analysis: LLMDecodeAnalysis | EmotionAnalysis): ReplyOption[] {
+  if ('replies' in analysis && analysis.replies) {
+    return [
+      {
+        id: 'a',
+        label: '极简回应',
+        content: analysis.replies.minimal,
+        tone: 'neutral',
+      },
+      {
+        id: 'b',
+        label: '温和边界',
+        content: analysis.replies.gentle,
+        tone: 'empathetic',
+      },
+      {
+        id: 'c',
+        label: '坚定边界',
+        content: analysis.replies.boundary,
+        tone: 'assertive',
+      },
+    ];
+  }
+
   const strategies: Record<string, Array<{ label: string; content: string; tone: ReplyOption['tone'] }>> = {
     guilt_trip: [
       { label: '确认感受', content: '我理解你的想法，让我消化一下。', tone: 'neutral' },

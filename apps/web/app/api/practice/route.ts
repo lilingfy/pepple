@@ -6,16 +6,14 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { practiceService } from '@/lib/backend/services/practice-service';
-import { Schemas, assertValid } from '@/lib/backend/policy/validation';
-import { getCurrentGuestSession } from '@/lib/backend/sessions/guest';
-import { normalizeApiFailure, generateRequestId, toErrorResponse } from '@/lib/backend/errors';
-import type { PracticeCreateRequest } from '@pebble/types';
+import { resolvePracticeOwner } from './_lib/current-user';
+import { normalizeApiFailure, generateRequestId, toErrorResponse, createBackendError } from '@/lib/backend/errors';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const requestId = generateRequestId();
 
   try {
-    const guestSession = await getCurrentGuestSession();
+    const { userId, guestSessionId } = await resolvePracticeOwner();
 
     // Parse query params
     const { searchParams } = new URL(request.url);
@@ -25,14 +23,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       : undefined;
     const isArchived = searchParams.has('isArchived')
       ? searchParams.get('isArchived') === 'true'
-      : false; // Default to false
+      : undefined;
     const limit = searchParams.has('limit')
       ? parseInt(searchParams.get('limit')!, 10)
       : 20;
     const cursor = searchParams.get('cursor') ?? undefined;
 
+    // Validate limit
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+      throw createBackendError('BAD_REQUEST', 'limit must be a positive integer between 1 and 100');
+    }
+
+    // Validate cursor
+    if (cursor !== undefined && isNaN(Date.parse(cursor))) {
+      throw createBackendError('BAD_REQUEST', 'cursor must be a valid ISO date string');
+    }
+
     const result = await practiceService.list({
-      guestSessionId: guestSession?.id,
+      userId,
+      guestSessionId,
       filters: {
         sourceType,
         isFavorite,
@@ -65,7 +74,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   try {
     const body = await request.json();
-    const guestSession = await getCurrentGuestSession();
+    const { userId, guestSessionId } = await resolvePracticeOwner();
 
     // Validate base fields
     if (!body.sourceType || !['decode', 'simulator'].includes(body.sourceType)) {
@@ -88,6 +97,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         throw createBackendError('BAD_REQUEST', 'Invalid decode content structure');
       }
 
+      if (!Array.isArray(body.content.replyOptions)) {
+        throw createBackendError('BAD_REQUEST', 'replyOptions must be an array');
+      }
+
       // Provide defaults for missing analysis fields
       const analysis = {
         attackType: body.content.analysis.attackType || 'general',
@@ -95,6 +108,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         subtext: body.content.analysis.subtext || '',
         emotionScore: body.content.analysis.emotionScore ?? 50,
         neutralityScore: body.content.analysis.neutralityScore ?? (100 - (body.content.analysis.emotionScore ?? 50)),
+        emotionStatus: body.content.analysis.emotionStatus || '',
       };
 
       // Normalize replyOptions to include tone
@@ -105,12 +119,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         tone: opt.tone || 'neutral',
       }));
 
+      // Validate selectedReplyId is present and matches a reply option
+      if (!body.content.selectedReplyId || typeof body.content.selectedReplyId !== 'string') {
+        throw createBackendError('BAD_REQUEST', 'selectedReplyId is required');
+      }
+
+      const selectedReply = replyOptions.find((r: { id: string; content: string }) => r.id === body.content.selectedReplyId);
+      if (!selectedReply) {
+        throw createBackendError('BAD_REQUEST', 'selectedReplyId does not match any reply option');
+      }
+
+      if (body.primaryReply !== selectedReply.content) {
+        throw createBackendError('BAD_REQUEST', 'primaryReply must match the selected reply content');
+      }
+
       entry = await practiceService.createFromDecode({
-        guestSessionId: guestSession?.id,
+        userId,
+        guestSessionId,
         originalText: body.content.originalText,
+        surfaceMeaning: body.content.surfaceMeaning || '',
         analysis,
         replyOptions,
         selectedReplyId: body.content.selectedReplyId,
+        primaryReply: body.primaryReply,
+        relationId: body.content.relationId,
+        relationName: body.content.relationName,
       });
     } else {
       // Validate simulator content structure
@@ -118,8 +151,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         throw createBackendError('BAD_REQUEST', 'Invalid simulator content structure');
       }
 
+      if (!Array.isArray(body.content.turns)) {
+        throw createBackendError('BAD_REQUEST', 'turns must be an array');
+      }
+
+      for (const turn of body.content.turns) {
+        if (!turn || typeof turn !== 'object') {
+          throw createBackendError('BAD_REQUEST', 'Each turn must be an object');
+        }
+        if (!['user', 'assistant'].includes(turn.role)) {
+          throw createBackendError('BAD_REQUEST', 'Each turn role must be user or assistant');
+        }
+        if (typeof turn.content !== 'string') {
+          throw createBackendError('BAD_REQUEST', 'Each turn content must be a string');
+        }
+      }
+
       entry = await practiceService.createFromSimulator({
-        guestSessionId: guestSession?.id,
+        userId,
+        guestSessionId,
         scenarioId: body.content.scenarioId,
         scenarioName: body.content.scenarioName,
         turns: body.content.turns,
@@ -147,6 +197,3 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
-
-// Import createBackendError for use in POST
-import { createBackendError } from '@/lib/backend/errors';

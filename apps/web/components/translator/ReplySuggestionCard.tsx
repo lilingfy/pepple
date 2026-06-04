@@ -47,6 +47,7 @@ export function ReplySuggestionCard({
 }: ReplySuggestionCardProps) {
   return (
     <div
+      data-testid={`reply-suggestion-${label}`}
       onClick={onSelect}
       className={cn(
         'rounded-pebble p-5 pebble-shadow transform transition-all cursor-pointer',

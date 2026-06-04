@@ -33,12 +33,14 @@ export interface PracticeRequest {
   primaryReply: string;
   content: {
     originalText: string;
+    surfaceMeaning?: string;
     analysis?: {
       attackType?: string;
       scenario?: string;
       subtext?: string;
       emotionScore?: number;
       neutralityScore?: number;
+      emotionStatus?: string;
     };
     replyOptions?: Array<{
       id: string;
@@ -47,6 +49,8 @@ export interface PracticeRequest {
       tone?: string;
     }>;
     selectedReplyId?: string;
+    relationId?: string;
+    relationName?: string;
     scenarioId?: string;
     scenarioName?: string;
     turns?: unknown[];

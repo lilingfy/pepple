@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { RelationNode } from '@pebble/types';
+import { getRelation } from '@/lib/frontend/relation-client';
 
 /**
  * UserCenterState - state interface for user center global state
@@ -40,11 +41,8 @@ export const useUserCenterStore = create<UserCenterState>()(
         if (!selectedRelationId) return;
 
         try {
-          const response = await fetch(`/api/relations/${selectedRelationId}`);
-          if (response.ok) {
-            const relation = await response.json();
-            set({ selectedRelation: relation });
-          }
+          const relation = await getRelation(selectedRelationId);
+          set({ selectedRelation: relation });
         } catch (error) {
           console.error('Failed to load selected relation:', error);
         }

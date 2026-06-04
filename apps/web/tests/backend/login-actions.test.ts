@@ -4,12 +4,14 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { signInAction, signUpAction, signOutAction, INITIAL_STATE } from '@/app/(main)/login/actions';
+import { signInAction, signUpAction, signOutAction } from '@/app/(main)/login/actions';
+import { INITIAL_STATE } from '@/app/(main)/login/state';
 
 // Mock Supabase server client
 const mockSignInWithPassword = vi.fn();
 const mockSignUp = vi.fn();
 const mockSignOut = vi.fn();
+const mockSetSession = vi.fn();
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => Promise.resolve({
@@ -17,6 +19,7 @@ vi.mock('@/lib/supabase/server', () => ({
       signInWithPassword: mockSignInWithPassword,
       signUp: mockSignUp,
       signOut: mockSignOut,
+      setSession: mockSetSession,
     },
   })),
 }));
@@ -24,6 +27,8 @@ vi.mock('@/lib/supabase/server', () => ({
 // Mock Next.js navigation and cache
 const mockRedirect = vi.fn();
 const mockRevalidatePath = vi.fn();
+const mockCookieSet = vi.fn();
+const mockCookieGetAll = vi.fn(() => []);
 
 vi.mock('next/navigation', () => ({
   redirect: (url: string) => {
@@ -38,9 +43,19 @@ vi.mock('next/cache', () => ({
   },
 }));
 
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(() => Promise.resolve({
+    getAll: mockCookieGetAll,
+    set: mockCookieSet,
+  })),
+}));
+
 describe('Login Actions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test-project.supabase.co';
+    mockSetSession.mockResolvedValue({ data: { session: {} }, error: null });
+    mockCookieGetAll.mockReturnValue([]);
   });
 
   describe('INITIAL_STATE', () => {
@@ -52,7 +67,7 @@ describe('Login Actions', () => {
   describe('signInAction', () => {
     it('redirects to /me on successful sign in without redirectTo', async () => {
       mockSignInWithPassword.mockResolvedValue({
-        data: { session: { user: { id: 'user-123' } } },
+        data: { session: { access_token: 'access-token', refresh_token: 'refresh-token', user: { id: 'user-123' } } },
         error: null,
       });
 
@@ -62,12 +77,13 @@ describe('Login Actions', () => {
 
       await expect(signInAction(null, formData)).rejects.toThrow('Redirect: /me');
       expect(mockRevalidatePath).toHaveBeenCalledWith('/', 'layout');
+      expect(mockCookieSet).not.toHaveBeenCalled();
       expect(mockRedirect).toHaveBeenCalledWith('/me');
     });
 
     it('redirects to redirectTo path on successful sign in when provided', async () => {
       mockSignInWithPassword.mockResolvedValue({
-        data: { session: { user: { id: 'user-123' } } },
+        data: { session: { access_token: 'access-token', refresh_token: 'refresh-token', user: { id: 'user-123' } } },
         error: null,
       });
 
@@ -111,7 +127,7 @@ describe('Login Actions', () => {
 
     it('redirects to /me when redirectTo is an absolute URL (open redirect hardening)', async () => {
       mockSignInWithPassword.mockResolvedValue({
-        data: { session: { user: { id: 'user-123' } } },
+        data: { session: { access_token: 'access-token', refresh_token: 'refresh-token', user: { id: 'user-123' } } },
         error: null,
       });
 
@@ -127,7 +143,7 @@ describe('Login Actions', () => {
 
     it('redirects to /me when redirectTo is a protocol-relative URL', async () => {
       mockSignInWithPassword.mockResolvedValue({
-        data: { session: { user: { id: 'user-123' } } },
+        data: { session: { access_token: 'access-token', refresh_token: 'refresh-token', user: { id: 'user-123' } } },
         error: null,
       });
 
@@ -142,7 +158,7 @@ describe('Login Actions', () => {
 
     it('redirects to /me when redirectTo contains CRLF injection attempt', async () => {
       mockSignInWithPassword.mockResolvedValue({
-        data: { session: { user: { id: 'user-123' } } },
+        data: { session: { access_token: 'access-token', refresh_token: 'refresh-token', user: { id: 'user-123' } } },
         error: null,
       });
 
@@ -181,6 +197,13 @@ describe('Login Actions', () => {
 
       expect(result.error).toBeNull();
       expect(result.message).toContain('邮箱验证');
+      expect(mockSignUp).toHaveBeenCalledWith({
+        email: 'new@example.com',
+        password: 'password123',
+        options: {
+          emailRedirectTo: 'http://localhost:3020/login?redirect=%2Fme',
+        },
+      });
       expect(mockRevalidatePath).not.toHaveBeenCalled();
       expect(mockRedirect).not.toHaveBeenCalled();
     });
@@ -188,7 +211,7 @@ describe('Login Actions', () => {
     it('redirects to /me when sign up succeeds with immediate session', async () => {
       mockSignUp.mockResolvedValue({
         data: { 
-          session: { user: { id: 'new-user-123' } },
+          session: { access_token: 'access-token', refresh_token: 'refresh-token', user: { id: 'new-user-123' } },
           user: { id: 'new-user-123' },
         },
         error: null,
@@ -206,7 +229,7 @@ describe('Login Actions', () => {
     it('redirects to redirectTo when sign up succeeds with immediate session', async () => {
       mockSignUp.mockResolvedValue({
         data: { 
-          session: { user: { id: 'new-user-123' } },
+          session: { access_token: 'access-token', refresh_token: 'refresh-token', user: { id: 'new-user-123' } },
           user: { id: 'new-user-123' },
         },
         error: null,
@@ -252,7 +275,7 @@ describe('Login Actions', () => {
     it('redirects to /me when redirectTo is an absolute URL (open redirect hardening)', async () => {
       mockSignUp.mockResolvedValue({
         data: { 
-          session: { user: { id: 'new-user-123' } },
+          session: { access_token: 'access-token', refresh_token: 'refresh-token', user: { id: 'new-user-123' } },
           user: { id: 'new-user-123' },
         },
         error: null,
@@ -270,7 +293,7 @@ describe('Login Actions', () => {
     it('redirects to /me when redirectTo is a protocol-relative URL in signUp', async () => {
       mockSignUp.mockResolvedValue({
         data: { 
-          session: { user: { id: 'new-user-123' } },
+          session: { access_token: 'access-token', refresh_token: 'refresh-token', user: { id: 'new-user-123' } },
           user: { id: 'new-user-123' },
         },
         error: null,

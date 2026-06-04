@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useDojoStore } from "@/store/dojo-store";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -9,7 +9,7 @@ import { ChatArea } from "@/components/dojo/ChatArea";
 import { CoachingPanel } from "@/components/dojo/CoachingPanel";
 import { DojoStatus } from "@/components/dojo/DojoStatus";
 
-export default function DojoPage() {
+function DojoContent() {
   const searchParams = useSearchParams();
   const { loadScenarios, selectScenario, scenarios, sessionStatus } =
     useDojoStore();
@@ -47,19 +47,19 @@ export default function DojoPage() {
       />
 
       {/* 主内容区 */}
-      <main className="flex-1 max-w-[1600px] mx-auto w-full px-8 pt-32 pb-8 grid grid-cols-12 gap-8 relative z-10">
+      <main className="flex-1 min-h-0 max-w-[1600px] mx-auto w-full overflow-hidden px-8 pt-32 pb-8 grid grid-cols-12 gap-8 relative z-10">
         {/* 左侧场景面板 */}
-        <aside className="col-span-3 flex flex-col gap-6">
+        <aside className="col-span-3 flex min-h-0 flex-col gap-6">
           <ScenarioPanel />
         </aside>
 
         {/* 中央聊天区 */}
-        <section className="col-span-6 flex flex-col h-full">
+        <section className="col-span-6 flex min-h-0 flex-col h-full">
           <ChatArea />
         </section>
 
         {/* 右侧分析面板 */}
-        <aside className="col-span-3 flex flex-col gap-6">
+        <aside className="col-span-3 flex h-full min-h-0 flex-col overflow-hidden">
           <CoachingPanel />
         </aside>
       </main>
@@ -77,5 +77,13 @@ export default function DojoPage() {
       {/* 状态和错误显示 */}
       <DojoStatus />
     </div>
+  );
+}
+
+export default function DojoPage() {
+  return (
+    <Suspense fallback={null}>
+      <DojoContent />
+    </Suspense>
   );
 }

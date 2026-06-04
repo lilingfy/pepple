@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { useDojoStore } from '@/store/dojo-store';
 import { getScoreLevel, getScoreColor, getScoreLabel } from '@/types/dojo';
 
+const SCORE_CARD_ANALYSIS_MAX_CHARS = 120;
+
 export function EmotionScoreCard() {
   const { rightPanel } = useDojoStore();
 
@@ -11,6 +13,7 @@ export function EmotionScoreCard() {
   const level = getScoreLevel(score);
   const color = getScoreColor(level);
   const label = getScoreLabel(level);
+  const analysisSummary = formatScoreCardAnalysis(rightPanel?.analysisSummary);
 
   // 圆环计算
   const circumference = 2 * Math.PI * 50;
@@ -83,15 +86,19 @@ export function EmotionScoreCard() {
       </motion.div>
 
       {/* 评语 */}
-      <p className="text-xs text-slate-600/80 leading-relaxed max-w-[200px]">
-        {rightPanel?.analysisSummary ? (
-          <>
-            你成功识别了情绪陷阱。当前语气<span className="text-deep-heal-green font-medium">非常克制</span>，有效避免了对抗性升级。
-          </>
-        ) : (
-          '开始练习，获取实时情绪分析'
-        )}
+      <p className="max-w-[220px] break-words text-xs leading-relaxed text-slate-600/80">
+        {analysisSummary}
       </p>
     </div>
   );
+}
+
+function formatScoreCardAnalysis(summary?: string): string {
+  if (!summary?.trim()) return '开始练习，获取实时情绪分析';
+
+  const normalized = summary.replace(/\s+/g, ' ').trim();
+  const chars = Array.from(normalized);
+  if (chars.length <= SCORE_CARD_ANALYSIS_MAX_CHARS) return normalized;
+
+  return `${chars.slice(0, SCORE_CARD_ANALYSIS_MAX_CHARS).join('')}…`;
 }

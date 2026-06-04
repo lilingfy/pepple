@@ -4,16 +4,15 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSafeRedirect } from "@/lib/utils/redirect-sanitizer";
+import type { AuthFormState } from "./state";
 
-export type AuthFormState = {
-  error: string | null;
-  message: string | null;
-};
-
-export const INITIAL_STATE: AuthFormState = {
-  error: null,
-  message: null,
-};
+function getEmailRedirectTo(rawRedirectTo: string | null): string {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3020";
+  const redirectTo = getSafeRedirect(rawRedirectTo, "/me");
+  const url = new URL("/login", appUrl);
+  url.searchParams.set("redirect", redirectTo);
+  return url.toString();
+}
 
 export async function signInAction(
   _prev: AuthFormState | null,
@@ -63,6 +62,9 @@ export async function signUpAction(
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      emailRedirectTo: getEmailRedirectTo(rawRedirectTo),
+    },
   });
 
   if (error) {

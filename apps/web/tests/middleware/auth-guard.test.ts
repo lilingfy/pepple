@@ -1,20 +1,52 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
 
+// Set required Supabase env vars before importing middleware
+process.env.NEXT_PUBLIC_SUPABASE_URL = "https://test.supabase.co";
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "test-anon-key";
+
 // Mock next/server
 vi.mock("next/server", async () => {
   const actual = await vi.importActual("next/server");
   return {
     ...actual,
     NextResponse: {
-      next: vi.fn(() => ({ type: "next" })),
+      next: vi.fn(() => ({
+        type: "next",
+        cookies: {
+          getAll: vi.fn(() => []),
+          set: vi.fn(),
+        },
+      })),
       redirect: vi.fn((url: URL) => ({
         type: "redirect",
         url: url.toString(),
+        cookies: {
+          getAll: vi.fn(() => []),
+          set: vi.fn(),
+        },
       })),
     },
   };
 });
+
+// Mock supabase SSR client
+vi.mock("@supabase/ssr", () => ({
+  createServerClient: vi.fn((_url: string, _key: string, options: { cookies: { getAll: () => Array<{ name: string; value: string }> } }) => {
+    const cookies = options.cookies.getAll();
+    const hasAuthCookie = cookies.some((c) => c.name === "pebble_auth");
+    return {
+      auth: {
+        getUser: vi.fn(() =>
+          Promise.resolve({
+            data: { user: hasAuthCookie ? { id: "test-user" } : null },
+            error: null,
+          })
+        ),
+      },
+    };
+  }),
+}));
 
 // Import middleware after mocking
 const { middleware } = await import("@/middleware");
@@ -36,6 +68,8 @@ describe("Auth Placeholder - Middleware", () => {
         has: (name: string) => name in cookies,
         get: (name: string) =>
           cookies[name] ? { value: cookies[name] } : undefined,
+        getAll: () =>
+          Object.entries(cookies).map(([name, value]) => ({ name, value })),
       },
     } as unknown as NextRequest;
   }

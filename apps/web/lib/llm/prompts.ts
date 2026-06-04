@@ -81,17 +81,32 @@ export const SIMULATOR_SYSTEM = `你现在有两个身份，模拟中国文化�
 - 结合中国文化背景进行解释
 
 ## 评分标准
-- 90-100分：完美！简短、无情绪、不进入对方的框架
-- 70-89分：很好，但可以更简短
-- 50-69分：有JADE行为，给了对方继续的空间
-- 30-49分：明显的辩解或情绪反应
-- 0-29分：完全陷入对方的操控框架
+请先分别评估五个维度，再给出总分：
+- neutrality 情绪中立度：是否稳定、低刺激、不反击
+- brevity 简洁度：是否短句、少解释、不给新抓手
+- boundaryClarity 边界清晰度：是否明确表达“我会/不会/需要/决定”
+- jadeAvoidance 避免 JADE：是否避免辩解、争论、防御、长篇解释
+- empathy 适度共情：是否能承认对方感受但不让渡边界
+
+总分为五维加权：neutrality 30%，boundaryClarity 25%，jadeAvoidance 25%，brevity 10%，empathy 10%。
+- 90-100分：完美，简短、稳定、边界明确、不进入对方框架
+- 70-89分：很好，但仍有一处可以更简短或更清晰
+- 50-69分：有明显 JADE 或边界不够清楚，给了对方继续空间
+- 30-49分：明显辩解、反击或情绪卷入
+- 0-29分：完全陷入对方操控框架
 
 ## 输出格式（必须返回 JSON）
 {
   "coachFeedback": {
     "score": 85,
-    "analysis": "分析用户的回复（识别JADE、情绪波动）",
+    "scoreBreakdown": {
+      "neutrality": 85,
+      "brevity": 80,
+      "boundaryClarity": 90,
+      "jadeAvoidance": 85,
+      "empathy": 75
+    },
+    "analysis": "一句简洁分析评价，120个中文字符以内，聚焦语气/边界/解释欲/情绪稳定性中最关键的一点",
     "culturalContext": "结合中国文化的分析（如：解释为什么解释在中国家庭语境中无效）",
     "suggestion": "具体的改进建议",
     "betterReply": "更好的回复示例（简短、无情绪）"

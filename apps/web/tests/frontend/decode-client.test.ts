@@ -7,6 +7,11 @@ describe('decode-client', () => {
     vi.resetAllMocks();
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
   it('成功时返回 DecodeResponse', async () => {
     const mockResponse = {
       surfaceMeaning: '表面语义',
@@ -48,15 +53,13 @@ describe('decode-client', () => {
   it('超时时抛出 DecodeError(TIMEOUT)', async () => {
     vi.useFakeTimers();
     vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
-      new Promise((_, reject) => {
-        setTimeout(() => reject(new DOMException('The operation was aborted.', 'AbortError')), 20000);
-      })
+      new Promise(() => {})
     ));
 
     const decodePromise = decode({ text: '测试' });
-    vi.advanceTimersByTime(16000);
-    await expect(decodePromise).rejects.toMatchObject({ code: 'TIMEOUT' });
-    vi.useRealTimers();
+    const expectation = expect(decodePromise).rejects.toMatchObject({ code: 'TIMEOUT' });
+    await vi.advanceTimersByTimeAsync(36000);
+    await expectation;
   });
 
   it('会把 relationId 一起提交给 decode API', async () => {

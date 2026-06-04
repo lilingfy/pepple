@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useUserCenterStore } from "@/store/user-center-store";
 import { cn } from "@/lib/utils";
+import { NotificationDropdown } from "./NotificationDropdown";
 
 const NAV_ITEMS = [
   { label: "首页", href: "/" },
@@ -101,16 +102,7 @@ export function AppHeader({ activeHref }: AppHeaderProps) {
         </button>
 
         {/* 通知按钮 */}
-        <button
-          type="button"
-          aria-label="通知"
-          className="relative p-2 rounded-full text-[#7D8C9F] hover:bg-white/50 transition-colors"
-        >
-          <span className="material-symbols-outlined text-2xl">
-            notifications
-          </span>
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-400 rounded-full border border-white" />
-        </button>
+        <NotificationDropdown />
 
         {/* 用户头像 */}
         <Link

@@ -52,6 +52,10 @@ const initialState: RelationState = {
   error: null,
 };
 
+function sortRelationNodes(nodes: RelationNode[]): RelationNode[] {
+  return [...nodes].sort((a, b) => a.position - b.position || a.createdAt.localeCompare(b.createdAt));
+}
+
 export const useRelationStore = create<RelationStore>()(
   immer((set) => ({
     ...initialState,
@@ -65,7 +69,7 @@ export const useRelationStore = create<RelationStore>()(
       try {
         const nodes = await listRelations();
         set((state) => {
-          state.nodes = nodes;
+          state.nodes = sortRelationNodes(nodes);
           state.isLoading = false;
         });
       } catch (error) {
@@ -85,7 +89,7 @@ export const useRelationStore = create<RelationStore>()(
       try {
         const node = await createRelation(data);
         set((state) => {
-          state.nodes.push(node);
+          state.nodes = sortRelationNodes([...state.nodes, node]);
           state.isLoading = false;
         });
         return node;
@@ -110,6 +114,7 @@ export const useRelationStore = create<RelationStore>()(
           const index = state.nodes.findIndex((n) => n.id === id);
           if (index !== -1) {
             state.nodes[index] = updated;
+            state.nodes = sortRelationNodes(state.nodes);
           }
           state.isLoading = false;
         });

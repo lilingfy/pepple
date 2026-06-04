@@ -9,9 +9,8 @@ vi.mock('next/font/google', () => ({
 
 import { metadata as rootMetadata } from '@/app/layout';
 import { metadata as dashboardMetadata } from '@/app/(main)/dashboard/layout';
-import { metadata as relationsMetadata } from '@/app/(main)/relations/layout';
-import { metadata as newRelationMetadata } from '@/app/(main)/relations/new/layout';
-import { metadata as relationChatMetadata } from '@/app/(main)/relations/[id]/chat/layout';
+import { metadata as relationsMetadata } from '@/app/(main)/me/relations/layout';
+import { metadata as newRelationMetadata } from '@/app/(main)/me/relations/new/layout';
 
 describe('user route metadata', () => {
   it('根布局使用品牌级默认 metadata，而不是写死某个功能页', () => {
@@ -23,6 +22,5 @@ describe('user route metadata', () => {
     expect(dashboardMetadata.title).toBe('仪表盘 - Pebble AI');
     expect(relationsMetadata.title).toBe('人际关系图谱 - Pebble AI');
     expect(newRelationMetadata.title).toBe('添加人际关系 - Pebble AI');
-    expect(relationChatMetadata.title).toBe('关系对话 - Pebble AI');
   });
 });

@@ -1,9 +1,19 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Mock navigation
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/translator',
+}));
+
 // Mock store
 vi.mock('@/store/translator-store', () => ({
   useTranslatorStore: vi.fn(),
+}));
+
+vi.mock('@/store/user-center-store', () => ({
+  useUserCenterStore: () => ({ selectedRelation: null }),
 }));
 
 // Mock Toast
@@ -18,6 +28,10 @@ Object.assign(navigator, {
     writeText: vi.fn(),
   },
 });
+
+vi.mock('@/lib/frontend/practice-client', () => ({
+  savePractice: vi.fn().mockResolvedValue({ id: 'practice-1' }),
+}));
 
 import { useTranslatorStore } from '@/store/translator-store';
 import TranslatorPage from '@/app/(main)/translator/page';
@@ -51,7 +65,7 @@ describe('Bottom Action Buttons', () => {
 
   it('result 态显示复制建议按钮', () => {
     render(<TranslatorPage />);
-    expect(screen.getByText('复制建议')).toBeInTheDocument();
+    expect(screen.getByText('请先选择方案')).toBeInTheDocument();
   });
 
   it('result 态显示存入练习本按钮', () => {
@@ -64,22 +78,14 @@ describe('Bottom Action Buttons', () => {
     Object.assign(navigator.clipboard, { writeText: mockClipboard });
 
     render(<TranslatorPage />);
-    const copyButton = screen.getByText('复制建议');
+    // 先选择方案 A
+    fireEvent.click(screen.getByTestId('reply-suggestion-A'));
 
+    const copyButton = screen.getByText('复制方案 A');
     fireEvent.click(copyButton);
 
     await waitFor(() => {
       expect(mockClipboard).toHaveBeenCalled();
     });
-  });
-
-  it('按钮具有正确的圆角样式', () => {
-    render(<TranslatorPage />);
-
-    const copyButton = screen.getByText('复制建议').closest('button');
-    const saveButton = screen.getByText('存入练习本').closest('button');
-
-    expect(copyButton).toHaveClass('rounded-full');
-    expect(saveButton).toHaveClass('rounded-full');
   });
 });

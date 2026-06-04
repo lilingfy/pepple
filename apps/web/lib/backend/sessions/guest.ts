@@ -20,6 +20,13 @@ export interface GuestSession {
   createdAt: Date;
 }
 
+function checkDB() {
+  if (!db) {
+    throw createBackendError('INTERNAL_ERROR', 'Database is not available');
+  }
+  return db;
+}
+
 /**
  * Ensure a guest session exists
  * Returns existing session or creates a new one
@@ -59,11 +66,12 @@ export async function getCurrentGuestSession(): Promise<GuestSession | null> {
  * Create a new guest session
  */
 async function createGuestSession(): Promise<GuestSession> {
+  const database = checkDB();
   const sessionToken = generateSessionToken();
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + SESSION_EXPIRY_DAYS);
 
-  const [session] = await db
+  const [session] = await database
     .insert(guestSessions)
     .values({
       sessionToken,
@@ -99,7 +107,8 @@ async function createGuestSession(): Promise<GuestSession> {
  * Get session by token
  */
 async function getSessionByToken(token: string): Promise<GuestSession | null> {
-  const [session] = await db
+  const database = checkDB();
+  const [session] = await database
     .select()
     .from(guestSessions)
     .where(
@@ -128,7 +137,8 @@ export async function linkGuestSessionToUser(
   guestSessionId: string,
   userId: string
 ): Promise<void> {
-  await db
+  const database = checkDB();
+  await database
     .update(guestSessions)
     .set({ userId })
     .where(eq(guestSessions.id, guestSessionId));

@@ -26,7 +26,8 @@ const MODEL = 'glm-4-flash-250414';
  */
 export async function callZhipuDecoder(
   text: string,
-  apiKey: string
+  apiKey: string,
+  systemPrompt: string = DECODER_SYSTEM,
 ): Promise<{
   surfaceMeaning: string;
   trueIntent: string;
@@ -48,7 +49,7 @@ export async function callZhipuDecoder(
     body: JSON.stringify({
       model: MODEL,
       messages: [
-        { role: 'system', content: DECODER_SYSTEM },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: `请分析以下对话：\n\n"${text}"` },
       ],
       temperature: 0.7,
@@ -105,6 +106,13 @@ export async function callZhipuSimulator(
 ): Promise<{
   coachFeedback: {
     score: number;
+    scoreBreakdown?: {
+      neutrality: number;
+      brevity: number;
+      boundaryClarity: number;
+      jadeAvoidance: number;
+      empathy: number;
+    };
     analysis: string;
     culturalContext: string;
     suggestion: string;
@@ -157,6 +165,13 @@ export async function callZhipuSimulator(
     return {
       coachFeedback: {
         score: 50,
+        scoreBreakdown: {
+          neutrality: 50,
+          brevity: 50,
+          boundaryClarity: 50,
+          jadeAvoidance: 50,
+          empathy: 50,
+        },
         analysis: '解析失败',
         culturalContext: '',
         suggestion: '请重试',

@@ -19,12 +19,14 @@ export class PracticeService {
       guestSessionId?: string | null;
       userId?: string | null;
       originalText: string;
+      surfaceMeaning: string;
       analysis: {
         attackType: string;
         scenario?: string;
         subtext: string;
         emotionScore: number;
         neutralityScore?: number;
+        emotionStatus: string;
       };
       replyOptions: Array<{
         id: string;
@@ -32,27 +34,48 @@ export class PracticeService {
         content: string;
         tone?: string;
       }>;
-      selectedReplyId?: string;
+      selectedReplyId: string;
+      primaryReply: string;
+      relationId?: string;
+      relationName?: string;
     }
   ): Promise<PracticeEntryType> {
-    // Use first reply option as primary if not specified
-    const primaryReply = params.selectedReplyId
-      ? params.replyOptions.find(r => r.id === params.selectedReplyId)?.content
-      : params.replyOptions[0]?.content;
+    if (!params.userId && !params.guestSessionId) {
+      throw createBackendError('UNAUTHORIZED', 'Authentication required');
+    }
 
-    if (!primaryReply) {
-      throw createBackendError('BAD_REQUEST', 'No reply options provided');
+    if (!Array.isArray(params.replyOptions)) {
+      throw createBackendError('BAD_REQUEST', 'replyOptions must be an array');
+    }
+
+    if (!params.selectedReplyId) {
+      throw createBackendError('BAD_REQUEST', 'selectedReplyId is required');
+    }
+
+    const selectedReply = params.replyOptions.find(r => r.id === params.selectedReplyId);
+    if (!selectedReply) {
+      throw createBackendError('BAD_REQUEST', 'selectedReplyId does not match any reply option');
+    }
+
+    const computedPrimaryReply = selectedReply.content;
+
+    if (params.primaryReply !== computedPrimaryReply) {
+      throw createBackendError('BAD_REQUEST', 'primaryReply must match the selected reply content');
     }
 
     const entry = await this.repository.create({
       guestSessionId: params.guestSessionId,
       userId: params.userId,
       sourceType: 'decode',
-      primaryReply,
+      primaryReply: params.primaryReply,
       contentJsonb: {
         originalText: params.originalText,
+        surfaceMeaning: params.surfaceMeaning,
         analysis: params.analysis,
         replyOptions: params.replyOptions,
+        selectedReplyId: params.selectedReplyId,
+        relationId: params.relationId,
+        relationName: params.relationName,
       },
     });
 
@@ -76,6 +99,26 @@ export class PracticeService {
       primaryReply: string;
     }
   ): Promise<PracticeEntryType> {
+    if (!params.userId && !params.guestSessionId) {
+      throw createBackendError('UNAUTHORIZED', 'Authentication required');
+    }
+
+    if (!Array.isArray(params.turns)) {
+      throw createBackendError('BAD_REQUEST', 'turns must be an array');
+    }
+
+    for (const turn of params.turns) {
+      if (!turn || typeof turn !== 'object') {
+        throw createBackendError('BAD_REQUEST', 'Each turn must be an object');
+      }
+      if (!['user', 'assistant'].includes(turn.role)) {
+        throw createBackendError('BAD_REQUEST', 'turn role must be user or assistant');
+      }
+      if (typeof turn.content !== 'string') {
+        throw createBackendError('BAD_REQUEST', 'turn content must be a string');
+      }
+    }
+
     const entry = await this.repository.create({
       guestSessionId: params.guestSessionId,
       userId: params.userId,
@@ -107,15 +150,29 @@ export class PracticeService {
       };
     }
   ): Promise<PracticeListResponse> {
+    if (!params.userId && !params.guestSessionId) {
+      throw createBackendError('UNAUTHORIZED', 'Authentication required');
+    }
+
     const { entries, nextCursor } = await this.repository.findMany({
       userId: params.userId,
       guestSessionId: params.guestSessionId,
       filters: params.filters,
     });
 
+    const total = await this.repository.count({
+      userId: params.userId,
+      guestSessionId: params.guestSessionId,
+      filters: {
+        sourceType: params.filters?.sourceType,
+        isFavorite: params.filters?.isFavorite,
+        isArchived: params.filters?.isArchived,
+      },
+    });
+
     return {
       entries: entries.map(e => this.toDTO(e)),
-      total: entries.length,
+      total,
       hasMore: !!nextCursor,
     };
   }
@@ -123,8 +180,23 @@ export class PracticeService {
   /**
    * Get a single practice entry
    */
-  async get(id: string): Promise<PracticeEntryType | null> {
-    const entry = await this.repository.findById(id);
+  async get(
+    id: string,
+    params: {
+      userId?: string | null;
+      guestSessionId?: string | null;
+    }
+  ): Promise<PracticeEntryType | null> {
+    if (!params.userId && !params.guestSessionId) {
+      throw createBackendError('UNAUTHORIZED', 'Authentication required');
+    }
+
+    // Repository already filters by owner (userId or guestSessionId)
+    const entry = await this.repository.findById(id, {
+      userId: params.userId,
+      guestSessionId: params.guestSessionId,
+    });
+
     return entry ? this.toDTO(entry) : null;
   }
 
@@ -133,12 +205,24 @@ export class PracticeService {
    */
   async update(
     id: string,
-    data: PracticeUpdateRequest
+    data: PracticeUpdateRequest,
+    params: {
+      userId?: string | null;
+      guestSessionId?: string | null;
+    }
   ): Promise<PracticeEntryType | null> {
+    if (!params.userId && !params.guestSessionId) {
+      throw createBackendError('UNAUTHORIZED', 'Authentication required');
+    }
+
     const entry = await this.repository.update(id, {
-      isFavorite: data.isFavorite,
-      isArchived: data.isArchived,
-      primaryReply: data.primaryReply,
+      userId: params.userId,
+      guestSessionId: params.guestSessionId,
+      data: {
+        isFavorite: data.isFavorite,
+        isArchived: data.isArchived,
+        primaryReply: data.primaryReply,
+      },
     });
 
     return entry ? this.toDTO(entry) : null;
@@ -147,8 +231,21 @@ export class PracticeService {
   /**
    * Delete a practice entry
    */
-  async delete(id: string): Promise<boolean> {
-    return this.repository.delete(id);
+  async delete(
+    id: string,
+    params: {
+      userId?: string | null;
+      guestSessionId?: string | null;
+    }
+  ): Promise<boolean> {
+    if (!params.userId && !params.guestSessionId) {
+      throw createBackendError('UNAUTHORIZED', 'Authentication required');
+    }
+
+    return this.repository.delete(id, {
+      userId: params.userId,
+      guestSessionId: params.guestSessionId,
+    });
   }
 
   /**

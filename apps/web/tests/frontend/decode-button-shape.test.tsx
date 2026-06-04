@@ -58,7 +58,7 @@ describe('DecodeButton Shape and Effects', () => {
     render(<TranslatorPage />);
     const button = screen.getByLabelText('解码');
 
-    // 装饰点应该是按钮的子元素
+    // 装饰点应该是按钮的子元素 (span 元素)
     const children = button.querySelectorAll('span');
     expect(children.length).toBeGreaterThanOrEqual(2);
   });

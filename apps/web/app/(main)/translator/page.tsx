@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { ToastProvider, useToast } from '@/components/ui/Toast';
 import { useTranslatorStore } from '@/store/translator-store';
+import { useUserCenterStore } from '@/store/user-center-store';
 import { InputArea } from '@/components/translator/InputArea';
 import { EmotionStatusBar } from '@/components/translator/EmotionStatusBar';
 import { DecodeButton } from '@/components/translator/DecodeButton';
@@ -44,6 +46,14 @@ function ActionButtons({
   const { showToast } = useToast();
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [savedEntryId, setSavedEntryId] = useState<string | null>(null);
+  const { selectedRelation } = useUserCenterStore();
+
+  // 切换方案或获得新结果时，重置保存状态
+  useEffect(() => {
+    setSaved(false);
+    setSavedEntryId(null);
+  }, [selectedLabel, result]);
 
   const handleCopy = async () => {
     if (!selectedLabel) {
@@ -71,24 +81,32 @@ function ActionButtons({
 
     setSaved(true);
     try {
-      await savePractice({
+      const entry = await savePractice({
         sourceType: 'decode',
         primaryReply: result.replySuggestions[selectedLabel],
         content: {
           originalText: inputText,
+          surfaceMeaning: result.surfaceMeaning,
           analysis: {
-            attackType: result.emotionStatus,
+            attackType: 'general',
+            scenario: 'decode',
             subtext: result.subtext,
             emotionScore: result.emotionScore,
+            neutralityScore: 100 - result.emotionScore,
+            emotionStatus: result.emotionStatus,
           },
           replyOptions: [
-            { id: 'A', label: result.replySuggestions.strategy.A, content: result.replySuggestions.A },
-            { id: 'B', label: result.replySuggestions.strategy.B, content: result.replySuggestions.B },
-            { id: 'C', label: result.replySuggestions.strategy.C, content: result.replySuggestions.C },
+            { id: 'A', label: result.replySuggestions.strategy.A, content: result.replySuggestions.A, tone: 'neutral' },
+            { id: 'B', label: result.replySuggestions.strategy.B, content: result.replySuggestions.B, tone: 'neutral' },
+            { id: 'C', label: result.replySuggestions.strategy.C, content: result.replySuggestions.C, tone: 'neutral' },
           ],
           selectedReplyId: selectedLabel,
+          ...(selectedRelation
+            ? { relationId: selectedRelation.id, relationName: selectedRelation.name }
+            : {}),
         },
       });
+      setSavedEntryId(entry.id);
       showToast('已存入练习本', 'success');
     } catch {
       setSaved(false);
@@ -97,48 +115,60 @@ function ActionButtons({
   };
 
   return (
-    <div className="flex items-center justify-center gap-3 mt-4">
-      {/* 复制建议按钮 */}
-      <button
-        type="button"
-        onClick={handleCopy}
-        disabled={!selectedLabel}
-        className={cn(
-          'flex items-center gap-2 px-4 py-2 rounded-full',
-          'border border-[#7D8C9F]/30',
-          'text-sm',
-          selectedLabel
-            ? 'bg-white/20 text-slate-600 hover:bg-white/40'
-            : 'bg-slate-100 text-slate-400 cursor-not-allowed',
-          'transition-all duration-200',
-        )}
-      >
-        {copied ? (
-          <CheckIcon className="w-4 h-4 text-green-600" filled />
-        ) : (
-          <CopyIcon className="w-4 h-4" />
-        )}
-        {copied ? '已复制' : selectedLabel ? `复制方案 ${selectedLabel}` : '请先选择方案'}
-      </button>
+    <div className="flex flex-col items-center gap-3 mt-4">
+      <div className="flex items-center justify-center gap-3">
+        {/* 复制建议按钮 */}
+        <button
+          type="button"
+          onClick={handleCopy}
+          disabled={!selectedLabel}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 rounded-full',
+            'border border-[#7D8C9F]/30',
+            'text-sm',
+            selectedLabel
+              ? 'bg-white/20 text-slate-600 hover:bg-white/40'
+              : 'bg-slate-100 text-slate-400 cursor-not-allowed',
+            'transition-all duration-200',
+          )}
+        >
+          {copied ? (
+            <CheckIcon className="w-4 h-4 text-green-600" filled />
+          ) : (
+            <CopyIcon className="w-4 h-4" />
+          )}
+          {copied ? '已复制' : selectedLabel ? `复制方案 ${selectedLabel}` : '请先选择方案'}
+        </button>
 
-      {/* 存入练习本按钮 */}
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={saved || !selectedLabel}
-        className={cn(
-          'flex items-center gap-2 px-4 py-2 rounded-full',
-          'text-sm',
-          selectedLabel
-            ? 'bg-[#7D8C9F] text-white hover:bg-[#6a7a8c]'
-            : 'bg-slate-300 text-slate-500 cursor-not-allowed',
-          'transition-all duration-200',
-          'disabled:opacity-70',
-        )}
-      >
-        <HeartIcon className={cn('w-4 h-4', saved && 'text-rose-300')} filled={saved} />
-        {saved ? '已存入' : '存入练习本'}
-      </button>
+        {/* 存入练习本按钮 */}
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saved || !selectedLabel}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 rounded-full',
+            'text-sm',
+            selectedLabel
+              ? 'bg-[#7D8C9F] text-white hover:bg-[#6a7a8c]'
+              : 'bg-slate-300 text-slate-500 cursor-not-allowed',
+            'transition-all duration-200',
+            'disabled:opacity-70',
+          )}
+        >
+          <HeartIcon className={cn('w-4 h-4', saved && 'text-rose-300')} filled={saved} />
+          {saved ? '已存入' : '存入练习本'}
+        </button>
+      </div>
+
+      {/* 查看链接 */}
+      {savedEntryId && (
+        <Link
+          href={`/me/practice?entry=${savedEntryId}`}
+          className="text-sm text-[#7D8C9F] hover:text-[#6a7a8c] underline underline-offset-2 transition-colors"
+        >
+          查看
+        </Link>
+      )}
     </div>
   );
 }

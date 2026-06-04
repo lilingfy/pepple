@@ -191,12 +191,11 @@ export class SimulatorRepository {
       throw new Error('Failed to create turn');
     }
 
-    // Update session turn count and timestamp
+    // Update session turn count
     await db
       .update(simulationSessions)
       .set({
         turnsCount: db.$count(simulationTurns, eq(simulationTurns.sessionId, data.sessionId)),
-        updatedAt: new Date(),
       })
       .where(eq(simulationSessions.id, data.sessionId));
 
@@ -231,7 +230,6 @@ export class SimulatorRepository {
         finalScore: data.finalScore,
         completedAt: new Date(),
         historySnapshot: data.summary,
-        updatedAt: new Date(),
       })
       .where(eq(simulationSessions.id, sessionId))
       .returning();
@@ -266,7 +264,7 @@ export class SimulatorRepository {
       .select()
       .from(simulationSessions)
       .where(whereClause)
-      .orderBy(desc(simulationSessions.updatedAt))
+      .orderBy(desc(simulationSessions.createdAt))
       .limit(params.limit ?? 10);
   }
 

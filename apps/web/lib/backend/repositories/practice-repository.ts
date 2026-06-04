@@ -5,7 +5,7 @@
 
 import { db } from '@/lib/db';
 import { practiceEntries } from '@/lib/db/schema';
-import { eq, and, desc, lt, isNull, or } from 'drizzle-orm';
+import { eq, and, desc, lt, isNull, or, count } from 'drizzle-orm';
 import type { PracticeEntry, NewPracticeEntry } from '@/lib/db/schema';
 import type { PracticeSourceType } from '@pebble/types';
 
@@ -17,15 +17,44 @@ export interface PracticeListFilters {
   cursor?: string;
 }
 
+function checkDB() {
+  if (!db) {
+    throw new Error('Database is not available');
+  }
+  return db;
+}
+
 export class PracticeRepository {
   /**
    * Find a practice entry by ID
    */
-  async findById(id: string): Promise<PracticeEntry | null> {
-    const [entry] = await db
+  async findById(
+    id: string,
+    params: {
+      userId?: string | null;
+      guestSessionId?: string | null;
+    }
+  ): Promise<PracticeEntry | null> {
+    const database = checkDB();
+
+    if (!params.userId && !params.guestSessionId) {
+      throw new Error('Authentication required');
+    }
+
+    const conditions: ReturnType<typeof eq>[] = [eq(practiceEntries.id, id)];
+
+    if (params.userId) {
+      conditions.push(eq(practiceEntries.userId, params.userId));
+    } else if (params.guestSessionId) {
+      conditions.push(eq(practiceEntries.guestSessionId, params.guestSessionId));
+    }
+
+    const whereClause = conditions.reduce((acc, condition) => and(acc!, condition)!);
+
+    const [entry] = await database
       .select()
       .from(practiceEntries)
-      .where(eq(practiceEntries.id, id))
+      .where(whereClause)
       .limit(1);
 
     return entry ?? null;
@@ -39,8 +68,13 @@ export class PracticeRepository {
     guestSessionId?: string | null;
     filters?: PracticeListFilters;
   }): Promise<{ entries: PracticeEntry[]; nextCursor?: string }> {
+    const database = checkDB();
     const { userId, guestSessionId, filters } = params;
     const limit = filters?.limit ?? 20;
+
+    if (!userId && !guestSessionId) {
+      throw new Error('Authentication required');
+    }
 
     // Build where conditions
     const conditions: ReturnType<typeof eq>[] = [];
@@ -61,9 +95,6 @@ export class PracticeRepository {
 
     if (filters?.isArchived !== undefined) {
       conditions.push(eq(practiceEntries.isArchived, filters.isArchived));
-    } else {
-      // By default, exclude archived entries
-      conditions.push(eq(practiceEntries.isArchived, false));
     }
 
     if (filters?.cursor) {
@@ -74,7 +105,7 @@ export class PracticeRepository {
       ? conditions.reduce((acc, condition) => and(acc!, condition)!)
       : undefined;
 
-    const entries = await db
+    const entries = await database
       .select()
       .from(practiceEntries)
       .where(whereClause)
@@ -105,7 +136,8 @@ export class PracticeRepository {
     isFavorite?: boolean;
     isArchived?: boolean;
   }): Promise<PracticeEntry> {
-    const [entry] = await db
+    const database = checkDB();
+    const [entry] = await database
       .insert(practiceEntries)
       .values({
         guestSessionId: data.guestSessionId ?? null,
@@ -130,19 +162,39 @@ export class PracticeRepository {
    */
   async update(
     id: string,
-    data: {
-      isFavorite?: boolean;
-      isArchived?: boolean;
-      primaryReply?: string;
+    params: {
+      userId?: string | null;
+      guestSessionId?: string | null;
+      data: {
+        isFavorite?: boolean;
+        isArchived?: boolean;
+        primaryReply?: string;
+      };
     }
   ): Promise<PracticeEntry | null> {
-    const [entry] = await db
+    const database = checkDB();
+
+    if (!params.userId && !params.guestSessionId) {
+      throw new Error('Authentication required');
+    }
+
+    const conditions: ReturnType<typeof eq>[] = [eq(practiceEntries.id, id)];
+
+    if (params.userId) {
+      conditions.push(eq(practiceEntries.userId, params.userId));
+    } else if (params.guestSessionId) {
+      conditions.push(eq(practiceEntries.guestSessionId, params.guestSessionId));
+    }
+
+    const whereClause = conditions.reduce((acc, condition) => and(acc!, condition)!);
+
+    const [entry] = await database
       .update(practiceEntries)
       .set({
-        ...data,
+        ...params.data,
         updatedAt: new Date(),
       })
-      .where(eq(practiceEntries.id, id))
+      .where(whereClause)
       .returning();
 
     return entry ?? null;
@@ -151,10 +203,32 @@ export class PracticeRepository {
   /**
    * Delete a practice entry
    */
-  async delete(id: string): Promise<boolean> {
-    const [entry] = await db
+  async delete(
+    id: string,
+    params: {
+      userId?: string | null;
+      guestSessionId?: string | null;
+    }
+  ): Promise<boolean> {
+    const database = checkDB();
+
+    if (!params.userId && !params.guestSessionId) {
+      throw new Error('Authentication required');
+    }
+
+    const conditions: ReturnType<typeof eq>[] = [eq(practiceEntries.id, id)];
+
+    if (params.userId) {
+      conditions.push(eq(practiceEntries.userId, params.userId));
+    } else if (params.guestSessionId) {
+      conditions.push(eq(practiceEntries.guestSessionId, params.guestSessionId));
+    }
+
+    const whereClause = conditions.reduce((acc, condition) => and(acc!, condition)!);
+
+    const [entry] = await database
       .delete(practiceEntries)
-      .where(eq(practiceEntries.id, id))
+      .where(whereClause)
       .returning({ id: practiceEntries.id });
 
     return !!entry;
@@ -168,7 +242,12 @@ export class PracticeRepository {
     guestSessionId?: string | null;
     filters?: Omit<PracticeListFilters, 'limit' | 'cursor'>;
   }): Promise<number> {
+    const database = checkDB();
     const { userId, guestSessionId, filters } = params;
+
+    if (!userId && !guestSessionId) {
+      throw new Error('Authentication required');
+    }
 
     const conditions: ReturnType<typeof eq>[] = [];
 
@@ -194,7 +273,7 @@ export class PracticeRepository {
       ? conditions.reduce((acc, condition) => and(acc!, condition)!)
       : undefined;
 
-    const result = await db
+    const result = await database
       .select({ count: count() })
       .from(practiceEntries)
       .where(whereClause);
@@ -202,9 +281,6 @@ export class PracticeRepository {
     return Number(result[0]?.count ?? 0);
   }
 }
-
-// Import count function
-import { count } from 'drizzle-orm';
 
 // Singleton instance
 export const practiceRepository = new PracticeRepository();

@@ -1,9 +1,19 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Mock navigation
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/translator',
+}));
+
 // Mock store
 vi.mock('@/store/translator-store', () => ({
   useTranslatorStore: vi.fn(),
+}));
+
+vi.mock('@/store/user-center-store', () => ({
+  useUserCenterStore: () => ({ selectedRelation: null }),
 }));
 
 // Mock Next.js Link
@@ -17,6 +27,10 @@ vi.mock('next/link', () => ({
 vi.mock('@/components/ui/Toast', () => ({
   ToastProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useToast: () => ({ showToast: vi.fn() }),
+}));
+
+vi.mock('@/lib/frontend/practice-client', () => ({
+  savePractice: vi.fn().mockResolvedValue({ id: 'practice-1' }),
 }));
 
 import { useTranslatorStore } from '@/store/translator-store';

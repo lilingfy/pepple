@@ -6,6 +6,15 @@ export type Difficulty = 'easy' | 'medium' | 'hard';
 
 // 情绪得分等级
 export type ScoreLevel = 'excellent' | 'good' | 'average' | 'needs-improvement';
+export type ScoreSource = 'pending' | 'ai' | 'rule' | 'fallback';
+
+export interface ScoreBreakdown {
+  neutrality: number;
+  brevity: number;
+  boundaryClarity: number;
+  jadeAvoidance: number;
+  empathy: number;
+}
 
 // 场景数据结构
 export interface Scenario {
@@ -35,11 +44,13 @@ export interface Message {
 
 // 实时分析面板数据
 export interface RightPanel {
-  analysisScore: number; // 0-100
+  analysisScore: number | null; // 0-100; null until first user reply
   analysisLabel: string; // 优秀/良好/一般/需改进
   analysisSummary: string; // 评语
   instantFeedback: string; // 即时反馈
   attentionPoint: string; // 注意点
+  scoreSource?: ScoreSource; // 评分来源
+  scoreBreakdown?: ScoreBreakdown; // 多维评分
 }
 
 // GET /api/scenarios 响应

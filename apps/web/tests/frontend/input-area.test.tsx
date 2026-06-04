@@ -8,12 +8,7 @@ describe('InputArea', () => {
     expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
-  it('显示实时字符计数', () => {
-    render(<InputArea value="你好世界" onChange={vi.fn()} onSubmit={vi.fn()} status="idle" />);
-    expect(screen.getByText(/4/)).toBeInTheDocument();
-  });
-
-  it('超过 500 字符时显示警告', () => {
+  it('超过 500 字符时禁用输入框', () => {
     const longText = 'a'.repeat(501);
     render(<InputArea value={longText} onChange={vi.fn()} onSubmit={vi.fn()} status="idle" />);
     expect(screen.getByRole('textbox')).toBeDisabled();

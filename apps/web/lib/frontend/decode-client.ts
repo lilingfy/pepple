@@ -1,7 +1,7 @@
 import { DecodeError, type DecodeResponse } from '@/types/translator';
 import type { DecodeRequest } from '@pebble/types';
 
-const DECODE_TIMEOUT_MS = 15_000;
+const DECODE_TIMEOUT_MS = 35_000;
 
 function createTimeoutPromise(ms: number): Promise<never> {
   return new Promise<never>((_, reject) => {

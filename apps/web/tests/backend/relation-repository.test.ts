@@ -1,20 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { returning, values, insert } = vi.hoisted(() => {
+const { returning, values, insert, deleteReturning, deleteWhere, deleteFn } = vi.hoisted(() => {
   const returning = vi.fn();
   const values = vi.fn(() => ({ returning }));
   const insert = vi.fn(() => ({ values }));
 
-  return { returning, values, insert };
+  const deleteReturning = vi.fn();
+  const deleteWhere = vi.fn(() => ({ returning: deleteReturning }));
+  const deleteFn = vi.fn(() => ({ where: deleteWhere }));
+
+  return { returning, values, insert, deleteReturning, deleteWhere, deleteFn };
 });
 
 vi.mock('@/lib/db', () => ({
   db: {
     insert,
+    delete: deleteFn,
   },
 }));
 
-import { RelationRepository } from '@/lib/backend/repositories/relation-repository';
+import { findFirstAvailablePosition, RelationRepository } from '@/lib/backend/repositories/relation-repository';
 
 describe('RelationRepository', () => {
   beforeEach(() => {
@@ -61,5 +66,31 @@ describe('RelationRepository', () => {
     );
 
     randomUUID.mockRestore();
+  });
+
+  it('新增关系位置使用第一个空槽位，避免删除后继续追加导致顺序混乱', () => {
+    expect(findFirstAvailablePosition([0, 1, 3, 4])).toBe(2);
+    expect(findFirstAvailablePosition([1, 2, 3])).toBe(0);
+    expect(findFirstAvailablePosition([0, 1, 2])).toBe(3);
+  });
+
+  it('delete should return true when a row is deleted', async () => {
+    deleteReturning.mockResolvedValue([{ id: 'relation-1' }]);
+
+    const repository = new RelationRepository();
+    const result = await repository.delete('relation-1');
+
+    expect(result).toBe(true);
+    expect(deleteFn).toHaveBeenCalled();
+  });
+
+  it('delete should return false when no row is deleted', async () => {
+    deleteReturning.mockResolvedValue([]);
+
+    const repository = new RelationRepository();
+    const result = await repository.delete('non-existent-id');
+
+    expect(result).toBe(false);
+    expect(deleteFn).toHaveBeenCalled();
   });
 });

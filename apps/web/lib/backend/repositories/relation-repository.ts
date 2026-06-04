@@ -12,6 +12,18 @@ type RelationRecordInput = Omit<NewRelationNode, 'tags'> & {
   tags?: string[] | string | null;
 };
 
+const MAX_RELATION_POSITIONS = 10;
+
+export function findFirstAvailablePosition(positions: number[], maxPositions = MAX_RELATION_POSITIONS): number {
+  const occupied = new Set(positions.filter((position) => position >= 0 && position < maxPositions));
+
+  for (let position = 0; position < maxPositions; position += 1) {
+    if (!occupied.has(position)) return position;
+  }
+
+  return maxPositions;
+}
+
 function generateId(): string {
   return crypto.randomUUID();
 }
@@ -110,12 +122,12 @@ export class RelationRepository {
    */
   async delete(id: string): Promise<boolean> {
     const database = this.requireDB();
-    const result = await database
+    const [deleted] = await database
       .delete(relationNodes)
-      .where(eq(relationNodes.id, id));
+      .where(eq(relationNodes.id, id))
+      .returning({ id: relationNodes.id });
 
-    // SQLite with better-sqlite3 uses .changes
-    return (result as unknown as { changes: number }).changes > 0;
+    return !!deleted;
   }
 
   /**
@@ -123,8 +135,7 @@ export class RelationRepository {
    */
   async getNextPosition(userId: string): Promise<number> {
     const nodes = await this.findManyByUserId(userId);
-    if (nodes.length === 0) return 0;
-    return Math.max(...nodes.map(n => n.position)) + 1;
+    return findFirstAvailablePosition(nodes.map(n => n.position));
   }
 }
 

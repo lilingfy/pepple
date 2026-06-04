@@ -147,6 +147,59 @@ describe('Relations experience accessibility', () => {
     expect(screen.getByRole('button', { name: '特别重要的老板' })).toBeInTheDocument();
   });
 
+  it('关系图谱线和节点使用同一个坐标层，并按稳定 position 槽位一一对应', () => {
+    mockStore.mockReturnValue({
+      nodes: [
+        {
+          id: 'relation-top',
+          userId: 'user-1',
+          name: '顶部关系',
+          tags: ['家庭'],
+          relationshipType: '父母',
+          对方特点: null,
+          期望结果: null,
+          情境补充: null,
+          generatedContext: null,
+          position: 0,
+          createdAt: '2026-03-27T00:00:00Z',
+          updatedAt: '2026-03-27T00:00:00Z',
+        },
+        {
+          id: 'relation-slot-2',
+          userId: 'user-1',
+          name: '第三槽位关系',
+          tags: ['职场'],
+          relationshipType: '同事',
+          对方特点: null,
+          期望结果: null,
+          情境补充: null,
+          generatedContext: null,
+          position: 2,
+          createdAt: '2026-03-27T00:00:00Z',
+          updatedAt: '2026-03-27T00:00:00Z',
+        },
+      ],
+      isLoading: false,
+      error: null,
+      loadNodes: vi.fn(),
+      selectNode: vi.fn(),
+      selectedNodeId: null,
+    });
+
+    render(<RelationsPage />);
+
+    expect(screen.getByTestId('relation-graph-node-layer')).toHaveClass('h-[600px]', 'w-[800px]');
+    expect(screen.getByTestId('relation-graph-node-relation-top')).toHaveStyle({ left: '360px', top: '40px' });
+
+    const slot2Node = screen.getByTestId('relation-graph-node-relation-slot-2');
+    expect(parseFloat(slot2Node.style.left)).toBeCloseTo(569.2324335849333);
+    expect(parseFloat(slot2Node.style.top)).toBeCloseTo(192.01626123751157);
+
+    const line = screen.getByTestId('relation-graph-line-relation-slot-2');
+    expect(parseFloat(line.getAttribute('x2') ?? '')).toBeCloseTo(609.2324335849333);
+    expect(parseFloat(line.getAttribute('y2') ?? '')).toBeCloseTo(232.01626123751157);
+  });
+
   it('详情卡在重复标签时不会触发 React 重复 key 警告', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 

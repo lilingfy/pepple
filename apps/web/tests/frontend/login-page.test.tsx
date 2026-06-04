@@ -7,6 +7,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import LoginPage from '@/app/(main)/login/page';
+import RegisterPage from '@/app/(main)/register/page';
 
 // Mock the LoginForm client component
 vi.mock('@/app/(main)/login/LoginForm', () => ({
@@ -19,7 +20,24 @@ vi.mock('@/app/(main)/login/LoginForm', () => ({
         <label htmlFor="password">密码</label>
         <input id="password" name="password" type="password" minLength={8} placeholder="••••••••" />
         <button type="submit" formAction="signInAction">登录</button>
-        <button type="submit" formAction="signUpAction">注册</button>
+        <a href={`/register?redirect=${encodeURIComponent(redirectUrl)}`}>去注册</a>
+      </form>
+    </div>
+  ),
+}));
+
+// Mock the RegisterForm client component
+vi.mock('@/app/(main)/register/RegisterForm', () => ({
+  default: ({ redirectUrl }: { redirectUrl: string }) => (
+    <div data-testid="register-form" data-redirect-url={redirectUrl}>
+      <form>
+        <input type="hidden" name="redirectTo" value={redirectUrl} />
+        <label htmlFor="email">邮箱</label>
+        <input id="email" name="email" type="email" placeholder="you@example.com" />
+        <label htmlFor="password">密码</label>
+        <input id="password" name="password" type="password" minLength={8} placeholder="创建一个安全密码" />
+        <button type="submit" formAction="signUpAction">创建账号</button>
+        <a href={`/login?redirect=${encodeURIComponent(redirectUrl)}`}>返回登录</a>
       </form>
     </div>
   ),
@@ -62,13 +80,12 @@ describe('LoginPage', () => {
     expect(signInButton).toHaveAttribute('type', 'submit');
   });
 
-  it('renders sign up button with formAction', async () => {
+  it('renders register link instead of inline sign up button', async () => {
     const searchParams = Promise.resolve({});
     render(await LoginPage({ searchParams }));
-    const signUpButton = screen.getByRole('button', { name: /注册/i });
-    expect(signUpButton).toBeInTheDocument();
-    expect(signUpButton).toHaveAttribute('formAction');
-    expect(signUpButton).toHaveAttribute('type', 'submit');
+    const registerLink = screen.getByRole('link', { name: /去注册/i });
+    expect(registerLink).toBeInTheDocument();
+    expect(registerLink).toHaveAttribute('href', '/register?redirect=%2Fme');
   });
 
   it('passes default redirectUrl /me to LoginForm when no query param', async () => {
@@ -113,5 +130,44 @@ describe('LoginPage', () => {
     render(await LoginPage({ searchParams }));
     const passwordInput = screen.getByPlaceholderText('••••••••');
     expect(passwordInput).toBeInTheDocument();
+  });
+});
+
+describe('RegisterPage', () => {
+  it('renders heading with 注册 Pebble AI', async () => {
+    const searchParams = Promise.resolve({});
+    render(await RegisterPage({ searchParams }));
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('注册 Pebble AI');
+  });
+
+  it('passes default redirectUrl /me to RegisterForm when no query param', async () => {
+    const searchParams = Promise.resolve({});
+    render(await RegisterPage({ searchParams }));
+    const registerForm = screen.getByTestId('register-form');
+    expect(registerForm).toHaveAttribute('data-redirect-url', '/me');
+  });
+
+  it('passes redirect query param value to RegisterForm', async () => {
+    const searchParams = Promise.resolve({ redirect: '/translator' });
+    render(await RegisterPage({ searchParams }));
+    const registerForm = screen.getByTestId('register-form');
+    expect(registerForm).toHaveAttribute('data-redirect-url', '/translator');
+  });
+
+  it('renders create account button with formAction', async () => {
+    const searchParams = Promise.resolve({});
+    render(await RegisterPage({ searchParams }));
+    const createAccountButton = screen.getByRole('button', { name: /创建账号/i });
+    expect(createAccountButton).toBeInTheDocument();
+    expect(createAccountButton).toHaveAttribute('formAction');
+    expect(createAccountButton).toHaveAttribute('type', 'submit');
+  });
+
+  it('renders return to login link with redirect param', async () => {
+    const searchParams = Promise.resolve({ redirect: '/dojo' });
+    render(await RegisterPage({ searchParams }));
+    const loginLink = screen.getByRole('link', { name: /返回登录/i });
+    expect(loginLink).toBeInTheDocument();
+    expect(loginLink).toHaveAttribute('href', '/login?redirect=%2Fdojo');
   });
 });

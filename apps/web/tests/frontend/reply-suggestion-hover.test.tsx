@@ -8,6 +8,8 @@ describe('ReplySuggestionCard Hover Effects', () => {
     content: '测试回复内容',
     strategy: '测试策略',
     originalText: '原始文本',
+    isSelected: false,
+    onSelect: () => {},
   };
 
   it('方案 A 具有 translate-x-2 位移', () => {
@@ -62,7 +64,7 @@ describe('ReplySuggestionCard Hover Effects', () => {
     );
 
     const badge = screen.getByText('方案 A');
-    expect(badge.className).toContain('bg-green-100');
+    expect(badge.className).toContain('bg-[#A8D8B9]/10');
   });
 
   it('方案 B 标签使用黄色背景带边框', () => {

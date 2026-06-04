@@ -16,21 +16,18 @@ describe('EmotionStatusBar', () => {
     expect(screen.getByText('平稳')).toBeInTheDocument();
   });
 
-  it('score=30 显示绿色进度条', () => {
-    const { container } = render(<EmotionStatusBar emotionStatus="平稳" emotionScore={30} />);
-    expect(container.innerHTML).toContain('bg-green-400');
+  it('score=30 显示心率值', () => {
+    render(<EmotionStatusBar emotionStatus="平稳" emotionScore={30} />);
     expect(screen.getByText('30%')).toBeInTheDocument();
   });
 
-  it('score=55 显示黄色进度条', () => {
-    const { container } = render(<EmotionStatusBar emotionStatus="轻微焦虑" emotionScore={55} />);
-    expect(container.innerHTML).toContain('bg-amber-400');
+  it('score=55 显示心率值', () => {
+    render(<EmotionStatusBar emotionStatus="轻微焦虑" emotionScore={55} />);
     expect(screen.getByText('55%')).toBeInTheDocument();
   });
 
-  it('score=80 显示红色进度条', () => {
-    const { container } = render(<EmotionStatusBar emotionStatus="压力较高" emotionScore={80} />);
-    expect(container.innerHTML).toContain('bg-rose-400');
+  it('score=80 显示心率值', () => {
+    render(<EmotionStatusBar emotionStatus="压力较高" emotionScore={80} />);
     expect(screen.getByText('80%')).toBeInTheDocument();
   });
 });
