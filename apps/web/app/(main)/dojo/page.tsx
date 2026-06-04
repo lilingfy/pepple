@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useDojoStore } from "@/store/dojo-store";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -11,7 +11,8 @@ import { DojoStatus } from "@/components/dojo/DojoStatus";
 
 function DojoContent() {
   const searchParams = useSearchParams();
-  const { loadScenarios, selectScenario, scenarios, sessionStatus } =
+  const appliedScenarioIdRef = useRef<string | null>(null);
+  const { loadScenarios, selectScenario, scenarios, currentScenario, sessionStatus } =
     useDojoStore();
 
   // 加载场景列表
@@ -22,13 +23,20 @@ function DojoContent() {
   // 根据 URL 参数自动选择场景
   useEffect(() => {
     const scenarioId = searchParams.get("scenarioId");
-    if (scenarioId && scenarios.length > 0 && sessionStatus === "idle") {
-      const targetScenario = scenarios.find((s) => s.id === scenarioId);
-      if (targetScenario) {
-        selectScenario(targetScenario);
-      }
+    if (!scenarioId || scenarios.length === 0 || appliedScenarioIdRef.current === scenarioId) {
+      return;
     }
-  }, [searchParams, scenarios, sessionStatus, selectScenario]);
+
+    const targetScenario = scenarios.find((s) => s.id === scenarioId);
+    if (!targetScenario) {
+      return;
+    }
+
+    appliedScenarioIdRef.current = scenarioId;
+    if (currentScenario?.id !== scenarioId || sessionStatus === "ended") {
+      selectScenario(targetScenario);
+    }
+  }, [searchParams, scenarios, currentScenario?.id, sessionStatus, selectScenario]);
 
   return (
     <div className="fluid-bg h-screen flex flex-col relative overflow-hidden">

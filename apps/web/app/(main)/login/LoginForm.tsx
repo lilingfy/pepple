@@ -17,7 +17,7 @@ export default function LoginForm({ redirectUrl }: LoginFormProps) {
   );
 
   return (
-    <form className="space-y-6">
+    <form action={signInFormAction} className="space-y-6" data-testid="login-form">
       <input type="hidden" name="redirectTo" value={redirectUrl} />
 
       <div className="space-y-4">
@@ -67,7 +67,6 @@ export default function LoginForm({ redirectUrl }: LoginFormProps) {
 
       <Button
         type="submit"
-        formAction={signInFormAction}
         isLoading={isSignInPending}
         loadingLabel="登录中"
         className="w-full py-3"

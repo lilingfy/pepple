@@ -18,7 +18,7 @@ export default function RegisterForm({ redirectUrl }: RegisterFormProps) {
   );
 
   return (
-    <form className="space-y-6">
+    <form action={formAction} className="space-y-6" data-testid="register-form">
       <input type="hidden" name="redirectTo" value={redirectUrl} />
 
       <div className="space-y-4">
@@ -86,7 +86,6 @@ export default function RegisterForm({ redirectUrl }: RegisterFormProps) {
 
       <Button
         type="submit"
-        formAction={formAction}
         isLoading={isPending}
         loadingLabel="注册中"
         className="w-full py-3"

@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { RelationNode } from '@pebble/types';
-import { getRelation } from '@/lib/frontend/relation-client';
+import { getRelation, RelationError } from '@/lib/frontend/relation-client';
 
 /**
  * UserCenterState - state interface for user center global state
@@ -44,6 +44,13 @@ export const useUserCenterStore = create<UserCenterState>()(
           const relation = await getRelation(selectedRelationId);
           set({ selectedRelation: relation });
         } catch (error) {
+          if (
+            error instanceof RelationError &&
+            (error.code === 'UNAUTHORIZED' || error.message === '未登录')
+          ) {
+            set({ selectedRelationId: null, selectedRelation: null });
+            return;
+          }
           console.error('Failed to load selected relation:', error);
         }
       },

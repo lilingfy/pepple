@@ -7,7 +7,7 @@ import type { RelationNode, RelationCreateRequest, RelationUpdateRequest } from 
 
 export class RelationError extends Error {
   constructor(
-    public readonly code: 'HTTP_ERROR' | 'NETWORK_ERROR' | 'NOT_FOUND' | 'FORBIDDEN',
+    public readonly code: 'HTTP_ERROR' | 'NETWORK_ERROR' | 'NOT_FOUND' | 'FORBIDDEN' | 'UNAUTHORIZED',
     message: string,
   ) {
     super(message);
@@ -26,6 +26,10 @@ interface ApiResponse<T> {
 }
 
 function mapRelationError(status: number, message: string): RelationError {
+  if (status === 401) {
+    return new RelationError('UNAUTHORIZED', message);
+  }
+
   if (status === 404) {
     return new RelationError('NOT_FOUND', message);
   }

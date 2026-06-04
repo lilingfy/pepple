@@ -56,6 +56,15 @@ describe('LoginForm', () => {
     expect(signInButton).toHaveAttribute('type', 'submit');
   });
 
+  it('binds the server action to the form instead of the submit button', () => {
+    render(<LoginForm redirectUrl="/me" />);
+    const form = screen.getByTestId('login-form');
+    const signInButton = screen.getByRole('button', { name: /登录/i });
+
+    expect(form).toHaveAttribute('action');
+    expect(signInButton).not.toHaveAttribute('formAction');
+  });
+
   it('renders register link', () => {
     render(<LoginForm redirectUrl="/me" />);
     const registerLink = screen.getByRole('link', { name: /去注册/i });
@@ -144,5 +153,30 @@ describe('LoginForm', () => {
     });
 
     resolveAction!({ error: null, message: null });
+  });
+
+  it('returns to idle state after sign-in action resolves with an error', async () => {
+    let resolveAction: (value: { error: string; message: null }) => void;
+    const actionPromise = new Promise<{ error: string; message: null }>((resolve) => {
+      resolveAction = resolve;
+    });
+    mockSignInAction.mockReturnValue(actionPromise);
+
+    render(<LoginForm redirectUrl="/me" />);
+
+    fireEvent.change(screen.getByLabelText(/邮箱/i), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByLabelText(/密码/i), { target: { value: 'wrongpassword' } });
+    fireEvent.click(screen.getByRole('button', { name: /登录/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /登录中/i })).toBeDisabled();
+    });
+
+    resolveAction!({ error: 'Invalid login credentials', message: null });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^登录$/i })).not.toBeDisabled();
+      expect(screen.getByText('Invalid login credentials')).toBeInTheDocument();
+    });
   });
 });

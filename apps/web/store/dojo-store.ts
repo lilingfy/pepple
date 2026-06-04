@@ -30,17 +30,67 @@ const initialState = {
   sessionId: null,
   sessionStatus: 'idle' as SessionStatus,
   startTime: null,
+  scenarioSessions: {},
   error: null,
 };
+
+function saveCurrentScenarioSession(state: DojoStore) {
+  if (!state.currentScenario) return;
+
+  state.scenarioSessions[state.currentScenario.id] = {
+    currentScenario: state.currentScenario,
+    messages: state.messages.slice(),
+    rightPanel: state.rightPanel ? { ...state.rightPanel } : null,
+    sessionId: state.sessionId,
+    sessionStatus: state.sessionStatus,
+    startTime: state.startTime,
+  };
+}
+
+function hasAssistantOpening(messages: Message[]) {
+  return messages.some((message) => message.role === 'assistant' && message.content.trim().length > 0);
+}
+
+function isRestorableActiveSession(session: DojoStore['scenarioSessions'][string] | undefined) {
+  return Boolean(
+    session?.sessionStatus === 'active' &&
+    session.sessionId &&
+    hasAssistantOpening(session.messages)
+  );
+}
 
 export const useDojoStore = create<DojoStore>()(
   immer((set, get) => ({
     ...initialState,
 
-    // 选择场景 - 开始新会话
+    // 选择场景 - 恢复未结束会话；无会话或已结束则开始新会话
     selectScenario: async (scenario: Scenario) => {
+      const current = get();
+      const cachedSession = current.scenarioSessions[scenario.id];
+
+      if (current.currentScenario?.id === scenario.id && current.sessionStatus === 'active') {
+        return;
+      }
+
+      if (isRestorableActiveSession(cachedSession)) {
+        set((state) => {
+          saveCurrentScenarioSession(state);
+          state.currentScenario = cachedSession.currentScenario;
+          state.messages = cachedSession.messages.slice();
+          state.rightPanel = cachedSession.rightPanel ? { ...cachedSession.rightPanel } : null;
+          state.sessionId = cachedSession.sessionId;
+          state.sessionStatus = cachedSession.sessionStatus;
+          state.startTime = cachedSession.startTime;
+          state.error = null;
+          state.isTyping = false;
+        });
+        return;
+      }
+
       set((state) => {
+        saveCurrentScenarioSession(state);
         state.currentScenario = scenario;
+        state.sessionId = null;
         state.sessionStatus = 'active';
         state.startTime = new Date();
         state.messages = [];
@@ -66,6 +116,7 @@ export const useDojoStore = create<DojoStore>()(
           if (response.rightPanel) {
             state.rightPanel = response.rightPanel;
           }
+          saveCurrentScenarioSession(state);
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : '启动会话失败';
@@ -73,6 +124,7 @@ export const useDojoStore = create<DojoStore>()(
           state.isTyping = false;
           state.error = message;
           state.sessionStatus = 'idle';
+          saveCurrentScenarioSession(state);
         });
       }
     },
@@ -122,6 +174,7 @@ export const useDojoStore = create<DojoStore>()(
         state.messages.push(userMessage);
         state.isTyping = true;
         state.error = null;
+        saveCurrentScenarioSession(state);
       });
 
       try {
@@ -146,12 +199,14 @@ export const useDojoStore = create<DojoStore>()(
           if (lastUserMessage && response.rightPanel.analysisScore !== null) {
             lastUserMessage.emotionScore = response.rightPanel.analysisScore;
           }
+          saveCurrentScenarioSession(state);
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : '发送消息失败';
         set((state) => {
           state.isTyping = false;
           state.error = message;
+          saveCurrentScenarioSession(state);
         });
       }
     },
@@ -189,12 +244,14 @@ export const useDojoStore = create<DojoStore>()(
           if (response.rightPanel) {
             state.rightPanel = response.rightPanel;
           }
+          saveCurrentScenarioSession(state);
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : '重启会话失败';
         set((state) => {
           state.isTyping = false;
           state.error = message;
+          saveCurrentScenarioSession(state);
         });
       }
     },
@@ -220,11 +277,13 @@ export const useDojoStore = create<DojoStore>()(
         set((state) => {
           state.sessionStatus = 'ended';
           state.error = null;
+          saveCurrentScenarioSession(state);
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : '结束会话失败';
         set((state) => {
           state.error = message;
+          saveCurrentScenarioSession(state);
         });
       }
     },

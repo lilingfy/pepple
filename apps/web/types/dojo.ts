@@ -81,6 +81,15 @@ export interface EndSessionResponse {
   sessionDuration: number; // 秒
 }
 
+export interface DojoScenarioSession {
+  currentScenario: Scenario;
+  messages: Message[];
+  rightPanel: RightPanel | null;
+  sessionId: string | null;
+  sessionStatus: SessionStatus;
+  startTime: Date | null;
+}
+
 // 陪练场状态
 export interface DojoState {
   // 场景
@@ -98,6 +107,7 @@ export interface DojoState {
   sessionId: string | null;
   sessionStatus: SessionStatus;
   startTime: Date | null;
+  scenarioSessions: Record<string, DojoScenarioSession>;
 
   // 错误
   error: string | null;
