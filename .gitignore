@@ -39,3 +39,7 @@ coverage/
 
 # Git worktrees
 .worktrees/
+
+# Local agent skills
+.agents/
+.claude/
