@@ -7,7 +7,9 @@ import { getSafeRedirect } from "@/lib/utils/redirect-sanitizer";
 import type { AuthFormState } from "./state";
 
 function getEmailRedirectTo(rawRedirectTo: string | null): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3020";
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3020");
   const redirectTo = getSafeRedirect(rawRedirectTo, "/me");
   const url = new URL("/login", appUrl);
   url.searchParams.set("redirect", redirectTo);
